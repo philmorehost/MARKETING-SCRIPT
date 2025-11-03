@@ -143,6 +143,13 @@ CREATE TABLE `campaign_queue` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `hourly_email_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `campaign_id` int(11) NOT NULL,
+  `sent_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE `sms_campaigns` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -235,6 +242,19 @@ CREATE TABLE `social_posts_queue` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `social_accounts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `team_id` int(11) DEFAULT NULL,
+  `provider` enum('facebook','twitter','linkedin') NOT NULL,
+  `account_name` varchar(255) NOT NULL,
+  `account_id` varchar(255) NOT NULL,
+  `access_token` text NOT NULL,
+  `refresh_token` text DEFAULT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Support & CMS
 CREATE TABLE `support_tickets` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -282,5 +302,15 @@ CREATE TABLE `testimonials` (
   `quote` text NOT NULL,
   `star_rating` int(11) NOT NULL DEFAULT 5,
   `display_order` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `campaign_events` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `campaign_id` int(11) NOT NULL,
+  `contact_id` int(11) NOT NULL,
+  `event_type` enum('open','click','bounce') NOT NULL,
+  `url_clicked` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
