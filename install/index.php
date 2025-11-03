@@ -5,7 +5,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // --- Configuration ---
-$required_php_version = '7.4.0';
+$required_php_version = '8.1.0';
 $required_extensions = ['mysqli', 'curl', 'gd'];
 $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
 

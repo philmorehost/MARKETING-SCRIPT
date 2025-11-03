@@ -7,8 +7,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 
 // Note: $mysqli is available from the script that includes this, e.g. a front controller for admin
 if (!isset($mysqli)) {
-    require_once '../config/db.php';
-    $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 }
 
 

@@ -54,14 +54,17 @@ if ($ai_provider === 'google_gemini') {
     if ($err) {
         $error_message = 'cURL Error: ' . $err;
     } else {
+    // TODO: Implement OpenAI provider
         $response_data = json_decode($response, true);
         if (isset($response_data['candidates'][0]['content']['parts'][0]['text'])) {
             $generated_text = $response_data['candidates'][0]['content']['parts'][0]['text'];
         } else {
+    // TODO: Implement OpenAI provider
             $error_message = 'Failed to parse AI response. ' . ($response_data['error']['message'] ?? 'Unknown API error.');
         }
     }
 } else {
+    // TODO: Implement OpenAI provider
     // Placeholder for other providers like OpenAI
     $error_message = "Provider '{$ai_provider}' is not yet supported.";
 }

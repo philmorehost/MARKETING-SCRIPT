@@ -46,6 +46,8 @@ $routes = [
     'qr-codes' => 'qr-codes.php',
     'support' => 'support.php',
     'api-access' => 'api-access.php',
+    'notifications' => 'notifications.php',
+    'notifications/mark-all-read' => 'notifications_mark_read.php',
 
     // API / AJAX endpoints can be routed here too
     'ajax/wizard_create_list' => 'ajax/wizard_create_list.php',

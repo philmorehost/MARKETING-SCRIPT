@@ -3,7 +3,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: ../public/login.php');
     exit;
 }
-require_once '../config/db.php';
 $message = '';
 
 // Handle status change

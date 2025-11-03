@@ -53,6 +53,13 @@ if (isset($event_data['event']) && $event_data['event'] === 'charge.success') {
                     $stmt_insert_tx->bind_param('issdd', $user_id, $reference, $desc, $amount_usd, $credits_to_add);
                     $stmt_insert_tx->execute();
 
+                    // --- Create a notification ---
+                    $notif_message = "Your purchase of " . number_format($credits_to_add) . " credits was successful.";
+                    $stmt_notif = $mysqli->prepare("INSERT INTO notifications (user_id, team_id, message, link) VALUES (?, (SELECT team_id FROM users WHERE id = ? LIMIT 1), ?, '/public/billing')");
+                    $stmt_notif->bind_param('iis', $user_id, $user_id, $notif_message);
+                    $stmt_notif->execute();
+                    // --- End notification ---
+
                     $mysqli->commit();
                 } catch (Exception $e) {
                     $mysqli->rollback();

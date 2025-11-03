@@ -1,5 +1,5 @@
 <?php
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userid'])) {
     header('Location: /public/login');
     exit;
 }

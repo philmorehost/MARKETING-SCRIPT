@@ -2,7 +2,6 @@
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: /public/login'); exit;
 }
-require_once '../config/db.php';
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

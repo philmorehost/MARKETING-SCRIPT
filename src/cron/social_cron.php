@@ -83,9 +83,11 @@ while ($post = $posts->fetch_assoc()) {
                 }
                 break;
             case 'twitter':
+                // TODO: Implement Twitter API integration
                 $error_message = "Twitter API not implemented.";
                 break;
             case 'linkedin':
+                // TODO: Implement LinkedIn API integration
                 $error_message = "LinkedIn API not implemented.";
                 break;
         }

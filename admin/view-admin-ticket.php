@@ -5,7 +5,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 }
 $admin_id = $_SESSION['user_id'];
 $ticket_id = (int)($_GET['id'] ?? 0);
-require_once '../config/db.php';
 
 $stmt = $mysqli->prepare("SELECT subject, status FROM support_tickets WHERE id = ?");
 $stmt->bind_param('i', $ticket_id);

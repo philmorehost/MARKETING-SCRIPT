@@ -3,8 +3,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: /public/login');
     exit;
 }
-require_once '../config/db.php';
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Fetch all transactions
 $transactions = $mysqli->query("SELECT t.*, u.email FROM transactions t JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC");

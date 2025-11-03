@@ -4,7 +4,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
-require_once '../config/db.php';
 
 // Handle form submissions for user actions
 $message = '';

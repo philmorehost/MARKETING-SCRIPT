@@ -8,11 +8,11 @@ $log_file = dirname(__FILE__) . '/../../logs/sms_webhook.log';
 // --- Security (Placeholder) ---
 // In a real application, you should verify the request, e.g., by checking a shared secret
 // or whitelisting the provider's IP addresses.
-$allowed_ips = ['127.0.0.1']; // Example: Add PhilmoreSMS IPs here
+$allowed_ips = ['127.0.0.1', '197.210.65.10']; // Example: Add PhilmoreSMS IPs here
 if (!in_array($_SERVER['REMOTE_ADDR'], $allowed_ips)) {
-    // http_response_code(403);
-    // file_put_contents($log_file, "Rejected request from untrusted IP: {$_SERVER['REMOTE_ADDR']}\n", FILE_APPEND);
-    // exit('Forbidden');
+    http_response_code(403);
+    file_put_contents($log_file, "Rejected request from untrusted IP: {$_SERVER['REMOTE_ADDR']}\n", FILE_APPEND);
+    exit('Forbidden');
 }
 
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
