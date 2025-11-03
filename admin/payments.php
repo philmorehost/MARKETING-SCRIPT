@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['payment_id'])) {
     $action = $_POST['action'];
 
     // Fetch payment details
-    $stmt = $mysqli->prepare("SELECT user_id, credit_package_id, amount FROM manual_payments WHERE id = ? AND status = 'pending'");
+    $stmt = $mysqli->prepare("SELECT user_id, credit_package_name, amount FROM manual_payments WHERE id = ? AND status = 'pending'");
     $stmt->bind_param('i', $payment_id);
     $stmt->execute();
     $payment = $stmt->get_result()->fetch_assoc();
@@ -23,12 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['payment_id'])) {
     if ($payment) {
         $user_id = $payment['user_id'];
         $amount_usd = $payment['amount'];
-        $package_id = $payment['credit_package_id'];
+        $package_name = $payment['credit_package_name'];
 
-        if ($action === 'approve' && $package_id) {
+        if ($action === 'approve') {
             // Find the corresponding credit package to get the credits
-            $stmt = $mysqli->prepare("SELECT name, credits FROM credit_packages WHERE id = ?");
-            $stmt->bind_param('i', $package_id);
+            $stmt = $mysqli->prepare("SELECT credits FROM credit_packages WHERE name = ?");
+            $stmt->bind_param('s', $package_name);
             $stmt->execute();
             $package = $stmt->get_result()->fetch_assoc();
 

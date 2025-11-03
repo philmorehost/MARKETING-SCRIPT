@@ -8,12 +8,13 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 $user_id = $_SESSION['user_id'];
+$team_id = $_SESSION['team_id'];
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
-// Fetch user's contact lists
-$lists_result = $mysqli->prepare("SELECT id, list_name FROM contact_lists WHERE user_id = ?");
-$lists_result->bind_param('i', $user_id);
+// Fetch team's contact lists
+$lists_result = $mysqli->prepare("SELECT id, list_name FROM contact_lists WHERE team_id = ?");
+$lists_result->bind_param('i', $team_id);
 $lists_result->execute();
 $lists = $lists_result->get_result();
 
@@ -44,11 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
         // 3. Deduct credits & Queue campaign (Transaction recommended)
         $mysqli->begin_transaction();
         try {
-            $mysqli->query("UPDATE users SET credit_balance = credit_balance - $total_cost WHERE id = $user_id");
+            $team_owner_id = $_SESSION['team_owner_id'];
+            $mysqli->query("UPDATE users SET credit_balance = credit_balance - $total_cost WHERE id = $team_owner_id");
 
-            $stmt = $mysqli->prepare("INSERT INTO sms_campaigns (user_id, sender_id, message_body, list_ids_json, total_pages, cost_in_credits, status) VALUES (?, ?, ?, ?, ?, ?, 'queued')");
+            $stmt = $mysqli->prepare("INSERT INTO sms_campaigns (user_id, team_id, sender_id, message_body, list_ids_json, total_pages, cost_in_credits, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'queued')");
             $list_id_json = json_encode([$list_id]);
-            $stmt->bind_param('isssids', $user_id, $sender_id, $sms_body, $list_id_json, $page_count, $total_cost);
+            $stmt->bind_param('iisssids', $user_id, $team_id, $sender_id, $sms_body, $list_id_json, $page_count, $total_cost);
             $stmt->execute();
             $campaign_id = $stmt->insert_id;
 

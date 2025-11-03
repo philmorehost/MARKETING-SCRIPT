@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($mysqli->connect_error) {
             $error_message = "Database connection error. Please try again later.";
         } else {
-            $stmt = $mysqli->prepare("SELECT id, name, password, role, status FROM users WHERE email = ? LIMIT 1");
+            $stmt = $mysqli->prepare("SELECT id, name, password, role, status, team_id FROM users WHERE email = ? LIMIT 1");
             $stmt->bind_param('s', $email);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -28,6 +28,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['user_name'] = $user['name'];
                         $_SESSION['user_role'] = $user['role'];
+                        $_SESSION['team_id'] = $user['team_id'];
+
+                        // If the user is part of a team, find the owner for credit deduction purposes
+                        if ($user['team_id']) {
+                            $team_stmt = $mysqli->prepare("SELECT owner_user_id FROM teams WHERE id = ?");
+                            $team_stmt->bind_param('i', $user['team_id']);
+                            $team_stmt->execute();
+                            $team = $team_stmt->get_result()->fetch_assoc();
+                            $_SESSION['team_owner_id'] = $team['owner_user_id'];
+                        } else {
+                             $_SESSION['team_owner_id'] = $user['id']; // User is their own "owner"
+                        }
 
                         // Redirect based on role
                         if ($user['role'] === 'admin') {

@@ -7,6 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 $user_id = $_SESSION['user_id'];
+$team_id = $_SESSION['team_id']; // Assuming team_id is stored in session
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
@@ -14,8 +15,8 @@ $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_list'])) {
     $list_name = trim($_POST['list_name'] ?? '');
     if (!empty($list_name)) {
-        $stmt = $mysqli->prepare("INSERT INTO contact_lists (user_id, list_name) VALUES (?, ?)");
-        $stmt->bind_param('is', $user_id, $list_name);
+        $stmt = $mysqli->prepare("INSERT INTO contact_lists (user_id, team_id, list_name) VALUES (?, ?, ?)");
+        $stmt->bind_param('iis', $user_id, $team_id, $list_name);
         if ($stmt->execute()) {
             $message = "List '{$list_name}' created successfully!";
         } else {
@@ -29,18 +30,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_list'])) {
 // Handle Delete List
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_list'])) {
     $list_id = (int)$_POST['list_id'];
-    // In a real app, we'd delete associated contacts, mappings, etc.
-    // For now, a simple delete.
-    $stmt = $mysqli->prepare("DELETE FROM contact_lists WHERE id = ? AND user_id = ?");
-    $stmt->bind_param('ii', $list_id, $user_id);
+    // Ensure the list belongs to the team before deleting
+    $stmt = $mysqli->prepare("DELETE FROM contact_lists WHERE id = ? AND team_id = ?");
+    $stmt->bind_param('ii', $list_id, $team_id);
     $stmt->execute();
     $message = "List deleted.";
 }
 
 
-// Fetch all contact lists for the user
-$lists_result = $mysqli->prepare("SELECT id, list_name, (SELECT COUNT(*) FROM contact_list_map WHERE list_id = contact_lists.id) as contact_count FROM contact_lists WHERE user_id = ? ORDER BY id DESC");
-$lists_result->bind_param('i', $user_id);
+// Fetch all contact lists for the team
+$lists_result = $mysqli->prepare("SELECT id, list_name, (SELECT COUNT(*) FROM contact_list_map WHERE list_id = contact_lists.id) as contact_count FROM contact_lists WHERE team_id = ? ORDER BY id DESC");
+$lists_result->bind_param('i', $team_id);
 $lists_result->execute();
 $lists = $lists_result->get_result();
 

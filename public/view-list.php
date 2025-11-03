@@ -7,6 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 $user_id = $_SESSION['user_id'];
+$team_id = $_SESSION['team_id'];
 $list_id = (int)($_GET['id'] ?? 0);
 if ($list_id === 0) {
     header('Location: contacts.php');
@@ -16,9 +17,9 @@ if ($list_id === 0) {
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
-// Verify the list belongs to the user
-$stmt = $mysqli->prepare("SELECT list_name FROM contact_lists WHERE id = ? AND user_id = ?");
-$stmt->bind_param('ii', $list_id, $user_id);
+// Verify the list belongs to the team
+$stmt = $mysqli->prepare("SELECT list_name FROM contact_lists WHERE id = ? AND team_id = ?");
+$stmt->bind_param('ii', $list_id, $team_id);
 $stmt->execute();
 $list = $stmt->get_result()->fetch_assoc();
 if (!$list) {
@@ -44,17 +45,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
         $name = $data[$name_col] ?? null;
 
         if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            // Check if contact exists, if not insert
-            $stmt = $mysqli->prepare("SELECT id FROM contacts WHERE email = ? AND user_id = ?");
-            $stmt->bind_param('si', $email, $user_id);
+            // Check if contact exists for this team, if not insert
+            $stmt = $mysqli->prepare("SELECT id FROM contacts WHERE email = ? AND team_id = ?");
+            $stmt->bind_param('si', $email, $team_id);
             $stmt->execute();
             $contact = $stmt->get_result()->fetch_assoc();
 
             if ($contact) {
                 $contact_id = $contact['id'];
             } else {
-                $stmt = $mysqli->prepare("INSERT INTO contacts (user_id, email, first_name) VALUES (?, ?, ?)");
-                $stmt->bind_param('iss', $user_id, $email, $name);
+                $stmt = $mysqli->prepare("INSERT INTO contacts (user_id, team_id, email, first_name) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param('iiss', $user_id, $team_id, $email, $name);
                 $stmt->execute();
                 $contact_id = $stmt->insert_id;
             }
@@ -72,8 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
 
 
 // Fetch contacts in this list
-$contacts_result = $mysqli->prepare("SELECT c.id, c.email, c.first_name, c.created_at FROM contacts c JOIN contact_list_map clm ON c.id = clm.contact_id WHERE clm.list_id = ? AND c.user_id = ?");
-$contacts_result->bind_param('ii', $list_id, $user_id);
+$contacts_result = $mysqli->prepare("SELECT c.id, c.email, c.first_name, c.created_at FROM contacts c JOIN contact_list_map clm ON c.id = clm.contact_id WHERE clm.list_id = ? AND c.team_id = ?");
+$contacts_result->bind_param('ii', $list_id, $team_id);
 $contacts_result->execute();
 $contacts = $contacts_result->get_result();
 ?>

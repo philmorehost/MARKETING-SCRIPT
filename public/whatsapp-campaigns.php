@@ -8,12 +8,13 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 $user_id = $_SESSION['user_id'];
+$team_id = $_SESSION['team_id'];
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
-// Fetch user's contact lists
-$lists_result = $mysqli->prepare("SELECT id, list_name FROM contact_lists WHERE user_id = ?");
-$lists_result->bind_param('i', $user_id);
+// Fetch team's contact lists
+$lists_result = $mysqli->prepare("SELECT id, list_name FROM contact_lists WHERE team_id = ?");
+$lists_result->bind_param('i', $team_id);
 $lists_result->execute();
 $lists = $lists_result->get_result();
 
@@ -42,11 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_whatsapp'])) {
     if ($user_balance >= $total_cost) {
         $mysqli->begin_transaction();
         try {
-            $mysqli->query("UPDATE users SET credit_balance = credit_balance - $total_cost WHERE id = $user_id");
+            $team_owner_id = $_SESSION['team_owner_id'];
+            $mysqli->query("UPDATE users SET credit_balance = credit_balance - $total_cost WHERE id = $team_owner_id");
 
-            $stmt = $mysqli->prepare("INSERT INTO whatsapp_campaigns (user_id, template_name, template_params_json, list_ids_json, cost_in_credits, status) VALUES (?, ?, ?, ?, ?, 'queued')");
+            $stmt = $mysqli->prepare("INSERT INTO whatsapp_campaigns (user_id, team_id, template_name, template_params_json, list_ids_json, cost_in_credits, status) VALUES (?, ?, ?, ?, ?, ?, 'queued')");
             $list_id_json = json_encode([$list_id]);
-            $stmt->bind_param('isssd', $user_id, $template_name, $template_params, $list_id_json, $total_cost);
+            $stmt->bind_param('iisssd', $user_id, $team_id, $template_name, $template_params, $list_id_json, $total_cost);
             $stmt->execute();
             $campaign_id = $stmt->insert_id;
 

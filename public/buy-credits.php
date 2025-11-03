@@ -86,7 +86,10 @@ $bank_details = get_setting('bank_details', $mysqli);
                     <p class="price">$<?php echo number_format($pkg['price'], 2); ?></p>
                     <p class="credits"><?php echo number_format($pkg['credits']); ?> Credits</p>
                     <p class="description"><?php echo htmlspecialchars($pkg['description']); ?></p>
-                    <button>Buy with Paystack</button> <!-- Placeholder -->
+                    <form action="paystack-initialize.php" method="post">
+                        <input type="hidden" name="package_id" value="<?php echo $pkg['id']; ?>">
+                        <button type="submit">Buy with Paystack</button>
+                    </form>
                 </div>
                 <?php endwhile; ?>
             </div>
