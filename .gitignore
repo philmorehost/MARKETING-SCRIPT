@@ -1,0 +1,11 @@
+# Composer dependencies
+vendor/
+
+# Log files
+*.log
+
+# Configuration
+config/
+
+# User uploads
+public/uploads/

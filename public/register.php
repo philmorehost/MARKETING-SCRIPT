@@ -1,10 +1,11 @@
 <?php
 session_start();
 require_once '../config/db.php';
-// We will need PHPMailer, assuming it will be in vendor
-// use PHPMailer\PHPMailer\PHPMailer;
-// use PHPMailer\PHPMailer\Exception;
-// require '../vendor/autoload.php';
+require_once '../vendor/autoload.php';
+require_once '../src/lib/functions.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 $error_message = '';
 $success_message = '';
@@ -39,22 +40,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param('sss', $name, $email, $hashed_password);
 
                 if ($stmt->execute()) {
-                    // Send confirmation email (placeholder logic)
-                    // $mail = new PHPMailer(true);
-                    // try {
-                    //     //Server settings
-                    //     $mail->isSMTP();
-                    //     // ... SMTP settings ...
-                    //     $mail->setFrom('no-reply@yourdomain.com', 'Mailer');
-                    //     $mail->addAddress($email, $name);
-                    //     $mail->isHTML(true);
-                    //     $mail->Subject = 'Confirm your registration';
-                    //     $mail->Body    = 'Please click this link to confirm your email...';
-                    //     $mail->send();
-                    // } catch (Exception $e) {
-                    //     // Handle mail error
-                    // }
-                    $success_message = "Registration successful! Please check your email to confirm your account.";
+                    // Send confirmation email
+                    $mail = new PHPMailer(true);
+                    try {
+                        //Server settings from DB
+                        $mail->isSMTP();
+                        $mail->Host = get_setting('smtp_host', $mysqli);
+                        $mail->SMTPAuth = true;
+                        $mail->Username = get_setting('smtp_user', $mysqli);
+                        $mail->Password = get_setting('smtp_pass', $mysqli);
+                        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                        $mail->Port = 587;
+
+                        $mail->setFrom('no-reply@yourdomain.com', get_setting('site_name', $mysqli));
+                        $mail->addAddress($email, $name);
+                        $mail->isHTML(true);
+                        $mail->Subject = 'Confirm your registration';
+                        $mail->Body    = 'Please click this link to confirm your email... (link generation logic to be added)';
+                        $mail->send();
+                        $success_message = "Registration successful! Please check your email to confirm your account.";
+                    } catch (Exception $e) {
+                        // Handle mail error - maybe log it but don't show user
+                        $success_message = "Registration successful! Confirmation email could not be sent.";
+                    }
                 } else {
                     $error_message = "Registration failed. Please try again.";
                 }

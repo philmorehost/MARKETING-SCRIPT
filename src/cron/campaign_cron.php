@@ -4,6 +4,10 @@
 
 require_once dirname(__FILE__) . '/../../config/db.php';
 require_once dirname(__FILE__) . '/../lib/functions.php';
+require_once dirname(__FILE__) . '/../../vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
@@ -46,28 +50,35 @@ while ($item = $queue_items->fetch_assoc()) {
     // Mark as 'sending'
     $mysqli->query("UPDATE campaign_queue SET status = 'sending' WHERE id = $queue_id");
 
-    // --- Email Sending Logic (PHPMailer would go here) ---
-    // $mail = new PHPMailer(true);
-    // try {
-    //     $mail->isSMTP();
-    //     // ... SMTP config from settings ...
-    //     $mail->setFrom('no-reply@yourdomain.com', get_setting('site_name', $mysqli));
-    //     $mail->addAddress($item['email_address']);
-    //     $mail->isHTML(true);
-    //     $mail->Subject = $item['subject'];
-    //     $mail->Body    = $item['html_content'];
-    //     $mail->send();
+    // --- Email Sending Logic ---
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host = get_setting('smtp_host', $mysqli);
+        $mail->SMTPAuth = true;
+        $mail->Username = get_setting('smtp_user', $mysqli);
+        $mail->Password = get_setting('smtp_pass', $mysqli);
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
+
+        $mail->setFrom('no-reply@yourdomain.com', get_setting('site_name', $mysqli));
+        $mail->addAddress($item['email_address']);
+        $mail->isHTML(true);
+        $mail->Subject = $item['subject'];
+        $mail->Body    = $item['html_content'];
+
+        $mail->send();
 
         // On success:
         $mysqli->query("UPDATE campaign_queue SET status = 'sent' WHERE id = $queue_id");
-        $mysqli->query("INSERT INTO hourly_email_log (campaign_id) VALUES ({$item['campaign_id']})");
+        $mysqli->query("INSERT INTO hourly_email_log (campaign_id, sent_at) VALUES ( (SELECT campaign_id FROM campaign_queue WHERE id = $queue_id), NOW() )");
         echo "Successfully sent email to {$item['email_address']}\n";
 
-    // } catch (Exception $e) {
-    //     // On failure:
-    //     $mysqli->query("UPDATE campaign_queue SET status = 'failed' WHERE id = $queue_id");
-    //     echo "Failed to send email to {$item['email_address']}. Error: {$mail->ErrorInfo}\n";
-    // }
+    } catch (Exception $e) {
+        // On failure:
+        $mysqli->query("UPDATE campaign_queue SET status = 'failed' WHERE id = $queue_id");
+        echo "Failed to send email to {$item['email_address']}. Error: {$mail->ErrorInfo}\n";
+    }
 }
 
 echo "Campaign cron run finished.\n";

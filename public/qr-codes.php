@@ -2,10 +2,10 @@
 session_start();
 require_once '../config/db.php';
 require_once '../src/lib/functions.php';
-// Placeholder for a QR code library, e.g., using Composer:
-// require_once '../vendor/autoload.php';
-// use Endroid\QrCode\QrCode;
-// use Endroid\QrCode\Writer\PngWriter;
+require_once '../vendor/autoload.php';
+
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -32,15 +32,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_qr'])) {
         if ($user_balance >= $price_per_qr) {
             $mysqli->begin_transaction();
             try {
-                // --- QR Image Generation (Placeholder) ---
+                // --- QR Image Generation ---
                 $upload_dir = 'uploads/qr/';
                 $filename = uniqid('qr_') . '.png';
                 $filepath = $upload_dir . $filename;
-                // $qrCode = QrCode::create($url);
-                // $writer = new PngWriter();
-                // $writer->write($qrCode)->saveToFile($filepath);
-                file_put_contents($filepath, 'dummy-qr-code-content'); // Dummy file
-                // --- End Placeholder ---
+
+                $qrCode = QrCode::create($url);
+                $writer = new PngWriter();
+                $result = $writer->write($qrCode);
+                $result->saveToFile($filepath);
+                // --- End QR Image Generation ---
 
                 $mysqli->query("UPDATE users SET credit_balance = credit_balance - $price_per_qr WHERE id = $user_id");
 
