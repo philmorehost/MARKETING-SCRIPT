@@ -15,7 +15,6 @@ if (!$campaign_id) {
     exit;
 }
 
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Fetch campaign details, ensuring it belongs to the user's team
 $stmt = $mysqli->prepare("SELECT * FROM whatsapp_campaigns WHERE id = ? AND team_id = ?");
@@ -44,9 +43,9 @@ $messages = $stmt->get_result();
     <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include 'includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Campaign Report: <?php echo htmlspecialchars($campaign['template_name']); ?></h1>
             <p><strong>Date:</strong> <?php echo $campaign['created_at']; ?></p>
@@ -80,6 +79,6 @@ $messages = $stmt->get_result();
              <a href="whatsapp-reports.php">Back to WhatsApp Reports</a>
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

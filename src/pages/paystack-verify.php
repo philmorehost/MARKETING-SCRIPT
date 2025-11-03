@@ -12,7 +12,6 @@ if (empty($reference)) {
     die('No reference supplied.');
 }
 
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $paystack_secret_key = get_setting('paystack_secret_key', $mysqli);
 
 // Verify the transaction

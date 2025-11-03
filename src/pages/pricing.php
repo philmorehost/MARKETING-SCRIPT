@@ -2,7 +2,6 @@
 require_once '../config/db.php';
 require_once '../src/lib/functions.php';
 
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Fetch all credit packages
 $packages_result = $mysqli->query("SELECT name, description, price, credits, is_popular FROM credit_packages ORDER BY price ASC");
@@ -24,7 +23,7 @@ $costs = [
     <link rel="stylesheet" href="css/public_style.css">
 </head>
 <body>
-    <?php include 'includes/site_header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/site_header.php'; ?>
 
     <main class="page-content">
         <h1>Our Pricing</h1>
@@ -57,6 +56,6 @@ $costs = [
         </section>
     </main>
 
-    <?php include 'includes/site_footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
 </body>
 </html>

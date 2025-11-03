@@ -7,7 +7,6 @@ if ($user_id === 0 || $ticket_id === 0) {
     exit;
 }
 
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Verify ticket ownership
 $stmt = $mysqli->prepare("SELECT subject, status FROM support_tickets WHERE id = ? AND user_id = ?");
@@ -41,9 +40,9 @@ $replies = $replies_result->get_result();
 <html lang="en">
 <head><title>Viewing Ticket</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include 'includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1><?php echo htmlspecialchars($ticket['subject']); ?></h1>
             <p>Status: <?php echo htmlspecialchars($ticket['status']); ?></p>
@@ -67,6 +66,6 @@ $replies = $replies_result->get_result();
             </form>
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

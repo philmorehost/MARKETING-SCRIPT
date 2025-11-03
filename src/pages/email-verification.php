@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 $user_id = $_SESSION['user_id'];
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
 $price_per_verification = (float)get_setting('price_per_verification', $mysqli, 1);
@@ -66,9 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_emails'])) {
 <html lang="en">
 <head><title>Email Verification</title></head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include 'includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Bulk Email Verification</h1>
             <?php if ($message): ?><p><?php echo $message; ?></p><?php endif; ?>
@@ -84,6 +83,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_emails'])) {
             <!-- We will list jobs here -->
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

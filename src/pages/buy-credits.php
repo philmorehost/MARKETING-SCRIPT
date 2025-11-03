@@ -4,7 +4,6 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 $user_id = $_SESSION['user_id'];
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
 // Handle Manual Payment Upload
@@ -54,9 +53,9 @@ $packages_result = $mysqli->query("SELECT id, name, description, price, credits,
 <html lang="en">
 <head><title>Buy Credits</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
 <body>
-    <?php include __DIR__ . '/../includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include __DIR__ . '/../includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Buy Credits</h1>
             <p>Our platform operates on a simple pay-as-you-go credit system. Purchase a credit package below to get started.</p>
@@ -106,6 +105,6 @@ $packages_result = $mysqli->query("SELECT id, name, description, price, credits,
             </div>
         </main>
     </div>
-    <?php include __DIR__ . '/../includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

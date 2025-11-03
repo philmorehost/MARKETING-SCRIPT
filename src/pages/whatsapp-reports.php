@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 $user_id = $_SESSION['user_id'];
 $team_id = $_SESSION['team_id'];
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Fetch sent WhatsApp campaigns for the team
 $search = $_GET['search'] ?? '';
@@ -27,9 +26,9 @@ $campaigns = $stmt->get_result();
 <html lang="en">
 <head><title>WhatsApp Campaign Reports</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include 'includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>WhatsApp Campaign Reports</h1>
 
@@ -54,6 +53,6 @@ $campaigns = $stmt->get_result();
             </table>
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

@@ -8,7 +8,6 @@ if ($user_id === 0 || $team_id === 0 || $automation_id === 0) {
     exit;
 }
 
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Verify ownership
 $stmt = $mysqli->prepare("SELECT name FROM automations WHERE id = ? AND team_id = ?");
@@ -44,9 +43,9 @@ $steps = $steps_result->get_result();
 <html lang="en">
 <head><title>Edit Automation</title></head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include 'includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Editing: <?php echo htmlspecialchars($automation['name']); ?></h1>
             <a href="automations.php">&larr; Back</a>
@@ -78,6 +77,6 @@ $steps = $steps_result->get_result();
             </form>
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

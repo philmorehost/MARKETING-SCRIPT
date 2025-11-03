@@ -8,7 +8,6 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $campaign_id = (int)($_GET['id'] ?? 0);
 
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $team_id = $_SESSION['team_id'];
 
 // Fetch campaign details and verify ownership
@@ -42,9 +41,9 @@ $open_rate = ($total_recipients > 0) ? ($opens / $total_recipients) * 100 : 0;
 <html lang="en">
 <head><title>Report for: <?php echo htmlspecialchars($campaign['subject']); ?></title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include 'includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Report for: "<?php echo htmlspecialchars($campaign['subject']); ?>"</h1>
             <a href="email-reports.php">&larr; Back to all reports</a>
@@ -59,6 +58,6 @@ $open_rate = ($total_recipients > 0) ? ($opens / $total_recipients) * 100 : 0;
             <!-- A list of recent events would go here -->
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

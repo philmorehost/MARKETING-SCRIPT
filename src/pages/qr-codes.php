@@ -11,7 +11,6 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 $user_id = $_SESSION['user_id'];
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
 // Fetch cost from settings
@@ -76,9 +75,9 @@ $codes = $codes_result->get_result();
 <html lang="en">
 <head><title>QR Code Generator</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include 'includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>QR Code Generator</h1>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>

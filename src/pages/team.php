@@ -8,7 +8,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 $invite_link = '';
 
@@ -84,9 +83,9 @@ if ($team_id && $team_role === 'owner') {
 <html lang="en">
 <head><title>Team Management</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include 'includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Team Management</h1>
             <?php if ($message): ?>
@@ -148,6 +147,6 @@ if ($team_id && $team_role === 'owner') {
             </table>
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

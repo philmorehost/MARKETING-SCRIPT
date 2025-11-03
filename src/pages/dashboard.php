@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Fetch user data
 $stmt = $mysqli->prepare("SELECT credit_balance, first_login_wizard_complete FROM users WHERE id = ?");
@@ -34,11 +33,11 @@ $stats = [
     <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
-    <?php include 'includes/header.php'; // We need to update this to show credits ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; // We need to update this to show credits ?>
 
     <div class="user-container">
         <aside class="sidebar">
-            <?php include 'includes/sidebar.php'; ?>
+            <?php include APP_ROOT . '/public/includes/sidebar.php'; ?>
         </aside>
         <main class="main-content">
             <h1>Dashboard</h1>
@@ -98,7 +97,7 @@ $stats = [
         </main>
     </div>
 
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 
     <?php if ($show_wizard): ?>
     <script>

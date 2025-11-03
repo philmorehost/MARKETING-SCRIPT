@@ -8,7 +8,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 $user_id = $_SESSION['user_id'];
 $team_id = $_SESSION['team_id'];
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
 // Fetch team's contact lists
@@ -90,10 +89,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_email'])) {
     <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
         <aside class="sidebar">
-            <?php include 'includes/sidebar.php'; ?>
+            <?php include APP_ROOT . '/public/includes/sidebar.php'; ?>
         </aside>
         <main class="main-content">
             <h1>Email Campaigns</h1>
@@ -136,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_email'])) {
             <button onclick="closeAiModal()">Cancel</button>
         </div>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
     <script>
         function openAiModal() { document.getElementById('ai-modal').style.display = 'block'; }
         function closeAiModal() { document.getElementById('ai-modal').style.display = 'none'; }

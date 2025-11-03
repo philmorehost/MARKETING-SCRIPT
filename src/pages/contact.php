@@ -11,7 +11,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($name) || empty($email) || empty($subject) || empty($body) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $message = "Please fill out all fields with valid information.";
     } else {
-        $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
         // Create a support ticket from a guest
         $stmt = $mysqli->prepare("INSERT INTO support_tickets (guest_name, guest_email, subject) VALUES (?, ?, ?)");
         $stmt->bind_param('sss', $name, $email, $subject);
@@ -37,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="css/public_style.css">
 </head>
 <body>
-    <?php require_once '../src/lib/functions.php'; $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME); include 'includes/site_header.php'; ?>
 
     <main class="page-content">
         <h1>Contact Us</h1>
@@ -66,6 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </main>
 
-    <?php include 'includes/site_footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
 </body>
 </html>

@@ -23,11 +23,11 @@ $open_tickets = 0;
     <link rel="stylesheet" href="/public/css/admin_style.css"> <!-- We will create this -->
 </head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/admin/includes/header.php'; ?>
 
     <div class="admin-container">
         <aside class="sidebar">
-            <?php include 'includes/sidebar.php'; ?>
+            <?php include APP_ROOT . '/admin/includes/sidebar.php'; ?>
         </aside>
 
         <main class="main-content">
@@ -57,6 +57,6 @@ $open_tickets = 0;
         </main>
     </div>
 
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/admin/includes/footer.php'; ?>
 </body>
 </html>

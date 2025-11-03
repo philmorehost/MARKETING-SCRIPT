@@ -1,32 +1,31 @@
 <?php
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ../public/login.php'); exit;
+    header('Location: /public/login'); exit;
 }
 require_once '../config/db.php';
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $id = (int)($_POST['id'] ?? 0);
     $author_name = $_POST['author_name'] ?? '';
+    $author_title = $_POST['author_title'] ?? '';
     $quote = $_POST['quote'] ?? '';
+    $star_rating = (int)($_POST['star_rating'] ?? 5);
 
-    if ($action === 'create') {
-        $stmt = $mysqli->prepare("INSERT INTO testimonials (author_name, quote) VALUES (?, ?)");
-        $stmt->bind_param('ss', $author_name, $quote);
-        $stmt->execute();
-        $message = "Testimonial created.";
+
+    if ($action === 'create' && !empty($author_name) && !empty($quote)) {
+        $stmt = $mysqli->prepare("INSERT INTO testimonials (author_name, author_title, quote, star_rating) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param('sssi', $author_name, $author_title, $quote, $star_rating);
+        if ($stmt->execute()) $message = "Testimonial created.";
     } elseif ($action === 'update' && $id > 0) {
-        $stmt = $mysqli->prepare("UPDATE testimonials SET author_name=?, quote=? WHERE id=?");
-        $stmt->bind_param('ssi', $author_name, $quote, $id);
-        $stmt->execute();
-        $message = "Testimonial updated.";
+        $stmt = $mysqli->prepare("UPDATE testimonials SET author_name=?, author_title=?, quote=?, star_rating=? WHERE id=?");
+        $stmt->bind_param('sssii', $author_name, $author_title, $quote, $star_rating, $id);
+        if ($stmt->execute()) $message = "Testimonial updated.";
     } elseif ($action === 'delete' && $id > 0) {
         $stmt = $mysqli->prepare("DELETE FROM testimonials WHERE id=?");
         $stmt->bind_param('i', $id);
-        $stmt->execute();
-        $message = "Testimonial deleted.";
+        if ($stmt->execute()) $message = "Testimonial deleted.";
     }
 }
 
@@ -34,37 +33,52 @@ $testimonials = $mysqli->query("SELECT * FROM testimonials ORDER BY display_orde
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Testimonials Editor</title><link rel="stylesheet" href="../public/css/admin_style.css"></head>
+<head><title>Testimonials Editor</title><link rel="stylesheet" href="/public/css/admin_style.css"></head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/admin/includes/header.php'; ?>
     <div class="admin-container">
-        <aside class="sidebar"><?php include 'includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/admin/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Testimonials Editor</h1>
-            <?php if ($message): ?><p><?php echo $message; ?></p><?php endif; ?>
+            <?php if ($message): ?><p class="message success"><?php echo $message; ?></p><?php endif; ?>
 
-            <h2>Add New Testimonial</h2>
-            <form action="" method="post">
-                <input type="hidden" name="action" value="create">
-                <input type="text" name="author_name" placeholder="Author's Name" required>
-                <textarea name="quote" placeholder="Testimonial content..." required></textarea>
-                <button type="submit">Create Testimonial</button>
-            </form>
+            <div class="card">
+                <h2>Add New Testimonial</h2>
+                <form action="" method="post">
+                    <input type="hidden" name="action" value="create">
+                    <div class="form-group"><label>Author's Name:</label><input type="text" name="author_name" required></div>
+                    <div class="form-group"><label>Author's Title:</label><input type="text" name="author_title"></div>
+                    <div class="form-group"><label>Star Rating:</label><input type="number" name="star_rating" min="1" max="5" value="5" required></div>
+                    <div class="form-group"><label>Quote:</label><textarea name="quote" required></textarea></div>
+                    <button type="submit">Create Testimonial</button>
+                </form>
+            </div>
             <hr>
             <h2>Existing Testimonials</h2>
-            <?php while($testimonial = $testimonials->fetch_assoc()): ?>
-            <form action="" method="post">
-                <input type="hidden" name="action" value="update">
-                <input type="hidden" name="id" value="<?php echo $testimonial['id']; ?>">
-                <input type="text" name="author_name" value="<?php echo htmlspecialchars($testimonial['author_name']); ?>">
-                <textarea name="quote"><?php echo htmlspecialchars($testimonial['quote']); ?></textarea>
-                <button type="submit">Update</button>
-                <button type="submit" name="action" value="delete" onclick="return confirm('Are you sure?')">Delete</button>
-            </form>
-            <br>
-            <?php endwhile; ?>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Author</th><th>Title</th><th>Quote</th><th>Rating</th><th>Actions</th></tr></thead>
+                    <tbody>
+                    <?php while($testimonial = $testimonials->fetch_assoc()): ?>
+                    <tr>
+                        <form action="" method="post">
+                            <input type="hidden" name="id" value="<?php echo $testimonial['id']; ?>">
+                            <td><input type="text" name="author_name" value="<?php echo htmlspecialchars($testimonial['author_name']); ?>"></td>
+                            <td><input type="text" name="author_title" value="<?php echo htmlspecialchars($testimonial['author_title']); ?>"></td>
+                            <td><textarea name="quote"><?php echo htmlspecialchars($testimonial['quote']); ?></textarea></td>
+                            <td><input type="number" name="star_rating" min="1" max="5" value="<?php echo $testimonial['star_rating']; ?>"></td>
+                            <td class="actions">
+                                <button type="submit" name="action" value="update">Update</button>
+                                <button type="submit" name="action" value="delete" class="danger" onclick="return confirm('Are you sure?')">Delete</button>
+                            </td>
+                        </form>
+                    </tr>
+                    <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/admin/includes/footer.php'; ?>
 </body>
 </html>

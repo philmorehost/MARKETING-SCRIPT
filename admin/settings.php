@@ -5,7 +5,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 }
 
 require_once '../config/db.php';
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
 // Handle form submission
@@ -41,10 +40,10 @@ function get_setting($key, $default = '') {
     <link rel="stylesheet" href="../public/css/admin_style.css">
 </head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/admin/includes/header.php'; ?>
     <div class="admin-container">
         <aside class="sidebar">
-            <?php include 'includes/sidebar.php'; ?>
+            <?php include APP_ROOT . '/admin/includes/sidebar.php'; ?>
         </aside>
         <main class="main-content">
             <h1>Site Settings</h1>
@@ -81,6 +80,6 @@ function get_setting($key, $default = '') {
             </form>
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/admin/includes/footer.php'; ?>
 </body>
 </html>

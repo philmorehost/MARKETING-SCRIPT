@@ -12,7 +12,6 @@ $invite_token = $_GET['invite_token'] ?? null;
 $email_from_invite = '';
 $team_id_from_invite = null;
 
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($mysqli->connect_error) {
     die("Database connection error.");
 }

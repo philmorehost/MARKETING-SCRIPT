@@ -10,7 +10,6 @@ $email = null;
 if (empty($token)) {
     $error_message = "Invalid password reset token.";
 } else {
-    $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     if ($mysqli->connect_error) {
         $error_message = "Database connection error.";
     } else {

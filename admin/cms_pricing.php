@@ -1,9 +1,8 @@
 <?php
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ../public/login.php'); exit;
+    header('Location: /public/login'); exit;
 }
 require_once '../config/db.php';
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
 // Handle POST actions (Create, Update, Delete)
@@ -16,21 +15,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $credits = (float)($_POST['credits'] ?? 0);
     $is_popular = isset($_POST['is_popular']) ? 1 : 0;
 
-    if ($action === 'create') {
+    if ($action === 'create' && !empty($name)) {
         $stmt = $mysqli->prepare("INSERT INTO credit_packages (name, description, price, credits, is_popular) VALUES (?, ?, ?, ?, ?)");
         $stmt->bind_param('ssddi', $name, $desc, $price, $credits, $is_popular);
-        $stmt->execute();
-        $message = "Package created.";
-    } elseif ($action === 'update' && $id > 0) {
+        if($stmt->execute()) $message = "Package created.";
+    } elseif ($action === 'update' && $id > 0 && !empty($name)) {
         $stmt = $mysqli->prepare("UPDATE credit_packages SET name=?, description=?, price=?, credits=?, is_popular=? WHERE id=?");
         $stmt->bind_param('ssddii', $name, $desc, $price, $credits, $is_popular, $id);
-        $stmt->execute();
-        $message = "Package updated.";
+        if($stmt->execute()) $message = "Package updated.";
     } elseif ($action === 'delete' && $id > 0) {
         $stmt = $mysqli->prepare("DELETE FROM credit_packages WHERE id=?");
         $stmt->bind_param('i', $id);
-        $stmt->execute();
-        $message = "Package deleted.";
+        if($stmt->execute()) $message = "Package deleted.";
     }
 }
 
@@ -42,59 +38,57 @@ $packages = $mysqli->query("SELECT * FROM credit_packages ORDER BY price");
 <head>
     <meta charset="UTF-8">
     <title>Credit Package Editor</title>
-    <link rel="stylesheet" href="../public/css/admin_style.css">
+    <link rel="stylesheet" href="/public/css/admin_style.css">
 </head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/admin/includes/header.php'; ?>
     <div class="admin-container">
-        <aside class="sidebar">
-            <?php include 'includes/sidebar.php'; ?>
-        </aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/admin/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Credit Package Editor</h1>
             <?php if ($message): ?><div class="message success"><?php echo $message; ?></div><?php endif; ?>
 
-            <h2>Add New Package</h2>
-            <form action="" method="post">
-                <input type="hidden" name="action" value="create">
-                <input type="text" name="name" placeholder="Package Name" required>
-                <input type="text" name="description" placeholder="Description">
-                <input type="number" step="0.01" name="price" placeholder="Price (USD)" required>
-                <input type="number" step="0.0001" name="credits" placeholder="Credits" required>
-                <label><input type="checkbox" name="is_popular" value="1"> Mark as Popular</label>
-                <button type="submit">Create Package</button>
-            </form>
+            <div class="card">
+                <h2>Add New Package</h2>
+                <form action="" method="post">
+                    <input type="hidden" name="action" value="create">
+                    <div class="form-group"><label>Name:</label><input type="text" name="name" required></div>
+                    <div class="form-group"><label>Description:</label><input type="text" name="description"></div>
+                    <div class="form-group"><label>Price (USD):</label><input type="number" step="0.01" name="price" required></div>
+                    <div class="form-group"><label>Credits:</label><input type="number" step="0.0001" name="credits" required></div>
+                    <div class="form-group"><label><input type="checkbox" name="is_popular" value="1"> Mark as Popular</label></div>
+                    <button type="submit">Create Package</button>
+                </form>
+            </div>
 
             <hr>
 
             <h2>Existing Packages</h2>
-            <table>
-            <?php while($pkg = $packages->fetch_assoc()): ?>
-                <tr>
-                    <td>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Name</th><th>Description</th><th>Price</th><th>Credits</th><th>Popular</th><th>Actions</th></tr></thead>
+                    <tbody>
+                    <?php while($pkg = $packages->fetch_assoc()): ?>
+                    <tr>
                         <form action="" method="post">
-                            <input type="hidden" name="action" value="update">
                             <input type="hidden" name="id" value="<?php echo $pkg['id']; ?>">
-                            <input type="text" name="name" value="<?php echo htmlspecialchars($pkg['name']); ?>">
-                            <input type="text" name="description" value="<?php echo htmlspecialchars($pkg['description']); ?>">
-                            <input type="number" step="0.01" name="price" value="<?php echo $pkg['price']; ?>">
-                            <input type="number" step="0.0001" name="credits" value="<?php echo $pkg['credits']; ?>">
-                            <input type="checkbox" name="is_popular" value="1" <?php if($pkg['is_popular']) echo 'checked'; ?>>
-                            <button type="submit">Update</button>
+                            <td><input type="text" name="name" value="<?php echo htmlspecialchars($pkg['name']); ?>"></td>
+                            <td><input type="text" name="description" value="<?php echo htmlspecialchars($pkg['description']); ?>"></td>
+                            <td><input type="number" step="0.01" name="price" value="<?php echo $pkg['price']; ?>"></td>
+                            <td><input type="number" step="0.0001" name="credits" value="<?php echo $pkg['credits']; ?>"></td>
+                            <td><input type="checkbox" name="is_popular" value="1" <?php if($pkg['is_popular']) echo 'checked'; ?>></td>
+                            <td class="actions">
+                                <button type="submit" name="action" value="update">Update</button>
+                                <button type="submit" name="action" value="delete" class="danger" onclick="return confirm('Delete this package?');">Delete</button>
+                            </td>
                         </form>
-                    </td>
-                    <td>
-                        <form action="" method="post" onsubmit="return confirm('Delete this package?');">
-                             <input type="hidden" name="action" value="delete">
-                             <input type="hidden" name="id" value="<?php echo $pkg['id']; ?>">
-                             <button type="submit">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-            <?php endwhile; ?>
-            </table>
+                    </tr>
+                    <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/admin/includes/footer.php'; ?>
 </body>
 </html>

@@ -6,7 +6,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 $admin_id = $_SESSION['user_id'];
 $ticket_id = (int)($_GET['id'] ?? 0);
 require_once '../config/db.php';
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 $stmt = $mysqli->prepare("SELECT subject, status FROM support_tickets WHERE id = ?");
 $stmt->bind_param('i', $ticket_id);
@@ -42,9 +41,9 @@ $replies = $replies_result->get_result();
 <html lang="en">
 <head><title>Admin: View Ticket</title><link rel="stylesheet" href="../public/css/admin_style.css"></head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/admin/includes/header.php'; ?>
     <div class="admin-container">
-        <aside class="sidebar"><?php include 'includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/admin/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1><?php echo htmlspecialchars($ticket['subject']); ?></h1>
             <div class="ticket-replies">
@@ -65,6 +64,6 @@ $replies = $replies_result->get_result();
             </form>
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/admin/includes/footer.php'; ?>
 </body>
 </html>

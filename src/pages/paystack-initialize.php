@@ -15,7 +15,6 @@ if ($package_id === 0) {
     exit;
 }
 
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Get package and user details
 $pkg_stmt = $mysqli->prepare("SELECT name, price FROM credit_packages WHERE id = ?");

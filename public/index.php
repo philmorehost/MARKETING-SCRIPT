@@ -1,9 +1,16 @@
 <?php
 // A very simple front controller
+define('APP_ROOT', dirname(__DIR__));
 session_start();
-require_once '../config/db.php';
-require_once '../vendor/autoload.php';
-require_once '../src/lib/functions.php';
+require_once APP_ROOT . '/config/db.php';
+require_once APP_ROOT . '/vendor/autoload.php';
+require_once APP_ROOT . '/src/lib/functions.php';
+
+$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+if ($mysqli->connect_error) {
+    // In a real app, you'd show a user-friendly error page.
+    die("Database connection failed: " . $mysqli->connect_error);
+}
 
 // --- Routing ---
 $request_uri = $_SERVER['REQUEST_URI'];
@@ -59,7 +66,7 @@ if (array_key_exists($route, $routes)) {
 
     // The actual page files are stored in the src directory to keep them
     // outside of the web root for better security.
-    $page_file = __DIR__ . '/../src/pages/' . $routes[$route];
+    $page_file = APP_ROOT . '/src/pages/' . $routes[$route];
 
     if (file_exists($page_file)) {
         include $page_file;
@@ -73,3 +80,6 @@ if (array_key_exists($route, $routes)) {
     echo "<h1>404 Not Found</h1>";
     echo "<p>No route defined for '<strong>" . htmlspecialchars($route) . "</strong>'.</p>";
 }
+
+// Close the database connection
+$mysqli->close();

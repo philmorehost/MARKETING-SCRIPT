@@ -8,7 +8,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 $team_id = $_SESSION['team_id'];
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
 // Fetch team's contact lists for the trigger
@@ -41,9 +40,9 @@ $automations = $automations_result->get_result();
 <html lang="en">
 <head><title>Automations</title></head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include 'includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Automations</h1>
             <?php if ($message): ?><p><?php echo $message; ?></p><?php endif; ?>
@@ -77,6 +76,6 @@ $automations = $automations_result->get_result();
             </table>
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

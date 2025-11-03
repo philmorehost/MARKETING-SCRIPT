@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 $user_id = $_SESSION['user_id'];
 $team_id = $_SESSION['team_id']; // Assuming team_id is stored in session
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $message = '';
 
 // Handle Create New List
@@ -52,10 +51,10 @@ $lists = $lists_result->get_result();
     <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
         <aside class="sidebar">
-            <?php include 'includes/sidebar.php'; ?>
+            <?php include APP_ROOT . '/public/includes/sidebar.php'; ?>
         </aside>
         <main class="main-content">
             <h1>Contact Lists</h1>
@@ -99,6 +98,6 @@ $lists = $lists_result->get_result();
 
         </main>
     </div>
-    <?php include 'includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

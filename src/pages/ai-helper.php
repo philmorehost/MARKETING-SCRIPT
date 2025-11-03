@@ -17,7 +17,6 @@ if (empty($prompt)) {
     exit;
 }
 
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // --- Settings ---
 $ai_provider = get_setting('ai_provider', $mysqli, 'none');
