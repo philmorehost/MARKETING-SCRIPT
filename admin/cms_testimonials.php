@@ -35,7 +35,7 @@ $testimonials = $mysqli->query("SELECT * FROM testimonials ORDER BY display_orde
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Testimonials Editor</title></head>
+<head><title>Testimonials Editor</title><link rel="stylesheet" href="../public/css/admin_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="admin-container">

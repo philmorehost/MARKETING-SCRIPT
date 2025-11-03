@@ -32,7 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_post'])) {
     if ($user_balance >= $total_cost) {
         $mysqli->begin_transaction();
         try {
-            $mysqli->query("UPDATE users SET credit_balance = credit_balance - $total_cost WHERE id = $user_id");
+            $update_credits_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
+            $update_credits_stmt->bind_param('di', $total_cost, $user_id);
+            $update_credits_stmt->execute();
 
             $stmt = $mysqli->prepare("INSERT INTO social_posts_queue (user_id, provider, account_id, message, status, scheduled_at, cost_in_credits) VALUES (?, ?, ?, ?, 'queued', ?, ?)");
 
@@ -63,7 +65,7 @@ $posts = $posts_result->get_result();
 ?>
 
 <!DOCTYPE html>
-<html lang="en"><head><title>Social Media Scheduler</title></head>
+<html lang="en"><head><title>Social Media Scheduler</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="user-container">

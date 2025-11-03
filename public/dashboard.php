@@ -32,6 +32,7 @@ $stats = [
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; // We need to update this to show credits ?>

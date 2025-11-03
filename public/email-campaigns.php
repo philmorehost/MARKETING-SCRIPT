@@ -47,7 +47,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_email'])) {
             // Note: Credits are shared by the team, deducted from the owner.
             // A more complex system might track individual contributions.
             $team_owner_id = $_SESSION['team_owner_id']; // Assuming this is in session
-            $mysqli->query("UPDATE users SET credit_balance = credit_balance - $total_cost WHERE id = $team_owner_id");
+
+            $update_credits_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
+            $update_credits_stmt->bind_param('di', $total_cost, $team_owner_id);
+            $update_credits_stmt->execute();
 
             $stmt = $mysqli->prepare("INSERT INTO campaigns (user_id, team_id, subject, html_content, cost_in_credits, status) VALUES (?, ?, ?, ?, ?, 'queued')");
             $stmt->bind_param('iisds', $user_id, $team_id, $subject, $html_content, $total_cost);
@@ -85,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_email'])) {
 <head>
     <meta charset="UTF-8">
     <title>Email Marketing Campaigns</title>
+    <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

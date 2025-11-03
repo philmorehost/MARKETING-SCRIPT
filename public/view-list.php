@@ -84,6 +84,7 @@ $contacts = $contacts_result->get_result();
 <head>
     <meta charset="UTF-8">
     <title>View List: <?php echo htmlspecialchars($list_name); ?></title>
+    <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

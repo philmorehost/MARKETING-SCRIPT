@@ -38,7 +38,7 @@ while($row = $content_result->fetch_assoc()) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Simple Page Editor</title></head>
+<head><title>Simple Page Editor</title><link rel="stylesheet" href="../public/css/admin_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="admin-container">

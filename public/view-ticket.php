@@ -40,7 +40,7 @@ $replies = $replies_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Viewing Ticket</title></head>
+<head><title>Viewing Ticket</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="user-container">

@@ -10,10 +10,11 @@ $user_id = $_SESSION['user_id'];
 $campaign_id = (int)($_GET['id'] ?? 0);
 
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+$team_id = $_SESSION['team_id'];
 
 // Fetch campaign details and verify ownership
-$stmt = $mysqli->prepare("SELECT subject FROM campaigns WHERE id = ? AND user_id = ?");
-$stmt->bind_param('ii', $campaign_id, $user_id);
+$stmt = $mysqli->prepare("SELECT subject FROM campaigns WHERE id = ? AND team_id = ?");
+$stmt->bind_param('ii', $campaign_id, $team_id);
 $stmt->execute();
 $campaign = $stmt->get_result()->fetch_assoc();
 if (!$campaign) {
@@ -34,7 +35,7 @@ $open_rate = ($total_recipients > 0) ? ($opens / $total_recipients) * 100 : 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Report for: <?php echo htmlspecialchars($campaign['subject']); ?></title></head>
+<head><title>Report for: <?php echo htmlspecialchars($campaign['subject']); ?></title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="user-container">

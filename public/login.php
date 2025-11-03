@@ -70,25 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="css/style.css"> <!-- We'll create this later -->
-    <style>
-        /* Basic styles for now */
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f7f6; }
-        .login-container { background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h2 { text-align: center; color: #333; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .button { width: 100%; padding: 12px; background-color: #106297; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        .button:hover { background-color: #0d4f7a; }
-        .error { color: #D8000C; background-color: #FFD2D2; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: center; }
-        .footer-links { text-align: center; margin-top: 15px; font-size: 14px; }
-        .footer-links a { color: #106297; text-decoration: none; }
-        .footer-links a:hover { text-decoration: underline; }
-    </style>
+    <link rel="stylesheet" href="css/public_style.css">
+    <link rel="stylesheet" href="css/auth_style.css">
 </head>
 <body>
-    <div class="login-container">
+    <div class="auth-container">
         <h2>Login to Your Account</h2>
         <?php if ($error_message): ?>
             <p class="error"><?php echo $error_message; ?></p>

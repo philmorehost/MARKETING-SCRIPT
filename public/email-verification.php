@@ -33,7 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_emails'])) {
         if ($user_balance >= $total_cost) {
             $mysqli->begin_transaction();
             try {
-                $mysqli->query("UPDATE users SET credit_balance = credit_balance - $total_cost WHERE id = $user_id");
+                $update_credits_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
+                $update_credits_stmt->bind_param('di', $total_cost, $user_id);
+                $update_credits_stmt->execute();
 
                 $stmt = $mysqli->prepare("INSERT INTO verification_jobs (user_id, job_name, total_emails, cost_in_credits) VALUES (?, ?, ?, ?)");
                 $stmt->bind_param('isid', $user_id, $job_name, $email_count, $total_cost);

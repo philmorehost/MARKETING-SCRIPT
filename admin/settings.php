@@ -39,6 +39,7 @@ function get_setting($key, $default = '') {
 <head>
     <meta charset="UTF-8">
     <title>Site Settings</title>
+    <link rel="stylesheet" href="../public/css/admin_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

@@ -45,7 +45,7 @@ if ($team_id) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Team Management</title></head>
+<head><title>Team Management</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="user-container">

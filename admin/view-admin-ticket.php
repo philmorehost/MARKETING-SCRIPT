@@ -41,7 +41,7 @@ $replies = $replies_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Admin: View Ticket</title></head>
+<head><title>Admin: View Ticket</title><link rel="stylesheet" href="../public/css/admin_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="admin-container">

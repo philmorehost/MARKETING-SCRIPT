@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Homepage CMS</title>
+    <link rel="stylesheet" href="../public/css/admin_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

@@ -65,23 +65,11 @@ if ($token_valid && $_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Reset Password</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f7f6; }
-        .container { background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
-        h2 { text-align: center; color: #333; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .button { width: 100%; padding: 12px; background-color: #106297; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        .message { padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: center; }
-        .error { color: #D8000C; background-color: #FFD2D2; }
-        .success { color: #4F8A10; background-color: #DFF2BF; }
-        .footer-links { text-align: center; margin-top: 15px; font-size: 14px; }
-        .footer-links a { color: #106297; text-decoration: none; }
-    </style>
+    <link rel="stylesheet" href="css/public_style.css">
+    <link rel="stylesheet" href="css/auth_style.css">
 </head>
 <body>
-    <div class="container">
+    <div class="auth-container">
         <h2>Set a New Password</h2>
 
         <?php if ($error_message): ?><p class="message error"><?php echo $error_message; ?></p><?php endif; ?>

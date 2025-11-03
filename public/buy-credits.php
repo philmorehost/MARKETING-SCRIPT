@@ -63,6 +63,7 @@ $bank_details = get_setting('bank_details', $mysqli);
 <head>
     <meta charset="UTF-8">
     <title>Buy Credits</title>
+    <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

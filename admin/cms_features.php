@@ -36,7 +36,7 @@ $features = $mysqli->query("SELECT * FROM cms_features ORDER BY display_order AS
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Features Editor</title></head>
+<head><title>Features Editor</title><link rel="stylesheet" href="../public/css/admin_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="admin-container">

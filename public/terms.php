@@ -9,6 +9,7 @@ $terms_of_service = get_setting('terms_of_service', $mysqli, 'Terms of service n
 <head>
     <meta charset="UTF-8">
     <title>Terms of Service</title>
+    <link rel="stylesheet" href="css/public_style.css">
 </head>
 <body>
     <?php include 'includes/site_header.php'; ?>

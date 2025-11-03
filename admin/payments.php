@@ -85,6 +85,7 @@ $pending_payments_result = $mysqli->query("SELECT mp.*, u.email FROM manual_paym
 <head>
     <meta charset="UTF-8">
     <title>Manual Payment Verification</title>
+    <link rel="stylesheet" href="../public/css/admin_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

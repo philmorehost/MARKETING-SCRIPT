@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Contact Us</title>
+    <link rel="stylesheet" href="css/public_style.css">
 </head>
 <body>
     <?php require_once '../src/lib/functions.php'; $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME); include 'includes/site_header.php'; ?>

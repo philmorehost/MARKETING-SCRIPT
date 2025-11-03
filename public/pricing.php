@@ -21,6 +21,7 @@ $costs = [
 <head>
     <meta charset="UTF-8">
     <title>Pricing - <?php echo htmlspecialchars(get_setting('site_name', $mysqli)); ?></title>
+    <link rel="stylesheet" href="css/public_style.css">
 </head>
 <body>
     <?php include 'includes/site_header.php'; ?>

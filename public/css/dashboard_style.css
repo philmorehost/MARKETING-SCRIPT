@@ -1,0 +1,107 @@
+/* --- dashboard_style.css --- */
+
+:root {
+    --primary-color: #106297;
+    --secondary-color: #0d4f7a;
+    --light-gray: #f4f7f6;
+    --border-color: #e0e0e0;
+    --text-color: #333;
+    --sidebar-bg: #2c3e50;
+    --sidebar-text: #ecf0f1;
+    --sidebar-active: var(--primary-color);
+}
+
+body {
+    font-family: sans-serif;
+    margin: 0;
+    background-color: var(--light-gray);
+}
+
+.user-container {
+    display: flex;
+}
+
+/* --- Layout --- */
+.sidebar {
+    width: 240px;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    height: 100vh;
+    padding-top: 20px;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 30px;
+}
+
+/* --- Header --- */
+.user-header {
+    background-color: #fff;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+.user-info span { margin-right: 20px; }
+.credit-balance { font-weight: bold; }
+
+/* --- Sidebar Navigation --- */
+.user-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.user-sidebar a {
+    display: block;
+    padding: 12px 20px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+.user-sidebar a:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+.user-sidebar a.active {
+    background-color: var(--sidebar-active);
+    font-weight: bold;
+}
+
+/* --- Components --- */
+.card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+th {
+    background-color: var(--light-gray);
+}
+
+form .form-group { margin-bottom: 15px; }
+form label { display: block; margin-bottom: 5px; font-weight: bold; }
+form input, form textarea, form select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}

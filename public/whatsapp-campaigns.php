@@ -44,7 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_whatsapp'])) {
         $mysqli->begin_transaction();
         try {
             $team_owner_id = $_SESSION['team_owner_id'];
-            $mysqli->query("UPDATE users SET credit_balance = credit_balance - $total_cost WHERE id = $team_owner_id");
+
+            $update_credits_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
+            $update_credits_stmt->bind_param('di', $total_cost, $team_owner_id);
+            $update_credits_stmt->execute();
 
             $stmt = $mysqli->prepare("INSERT INTO whatsapp_campaigns (user_id, team_id, template_name, template_params_json, list_ids_json, cost_in_credits, status) VALUES (?, ?, ?, ?, ?, ?, 'queued')");
             $list_id_json = json_encode([$list_id]);
@@ -82,6 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_whatsapp'])) {
 <head>
     <meta charset="UTF-8">
     <title>Bulk WhatsApp Service</title>
+    <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

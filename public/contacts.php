@@ -50,6 +50,7 @@ $lists = $lists_result->get_result();
 <head>
     <meta charset="UTF-8">
     <title>Contact Lists</title>
+    <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

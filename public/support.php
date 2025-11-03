@@ -40,7 +40,7 @@ $tickets = $tickets_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Support Tickets</title></head>
+<head><title>Support Tickets</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="user-container">

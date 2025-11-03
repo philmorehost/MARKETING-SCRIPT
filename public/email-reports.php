@@ -9,15 +9,16 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
-// Fetch sent email campaigns for the user
+// Fetch sent email campaigns for the team
+$team_id = $_SESSION['team_id'];
 $search = $_GET['search'] ?? '';
 if ($search) {
-    $stmt = $mysqli->prepare("SELECT id, subject, cost_in_credits, status, created_at FROM campaigns WHERE user_id = ? AND (status = 'sent' OR status = 'sending') AND subject LIKE ? ORDER BY created_at DESC");
+    $stmt = $mysqli->prepare("SELECT id, subject, cost_in_credits, status, created_at FROM campaigns WHERE team_id = ? AND (status = 'sent' OR status = 'sending') AND subject LIKE ? ORDER BY created_at DESC");
     $search_param = "%{$search}%";
-    $stmt->bind_param('is', $user_id, $search_param);
+    $stmt->bind_param('is', $team_id, $search_param);
 } else {
-    $stmt = $mysqli->prepare("SELECT id, subject, cost_in_credits, status, created_at FROM campaigns WHERE user_id = ? AND (status = 'sent' OR status = 'sending') ORDER BY created_at DESC");
-    $stmt->bind_param('i', $user_id);
+    $stmt = $mysqli->prepare("SELECT id, subject, cost_in_credits, status, created_at FROM campaigns WHERE team_id = ? AND (status = 'sent' OR status = 'sending') ORDER BY created_at DESC");
+    $stmt->bind_param('i', $team_id);
 }
 $stmt->execute();
 $campaigns = $stmt->get_result();
@@ -25,7 +26,7 @@ $campaigns = $stmt->get_result();
 
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Email Campaign Reports</title></head>
+<head><title>Email Campaign Reports</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="user-container">

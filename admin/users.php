@@ -64,6 +64,7 @@ $users_result = $stmt->get_result();
 <head>
     <meta charset="UTF-8">
     <title>User Management</title>
+    <link rel="stylesheet" href="../public/css/admin_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

@@ -43,7 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_qr'])) {
                 $result->saveToFile($filepath);
                 // --- End QR Image Generation ---
 
-                $mysqli->query("UPDATE users SET credit_balance = credit_balance - $price_per_qr WHERE id = $user_id");
+                $update_credits_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
+                $update_credits_stmt->bind_param('di', $price_per_qr, $user_id);
+                $update_credits_stmt->execute();
 
                 $stmt = $mysqli->prepare("INSERT INTO qr_codes (user_id, name, url, image_path, cost_in_credits) VALUES (?, ?, ?, ?, ?)");
                 $stmt->bind_param('isssd', $user_id, $name, $url, $filepath, $price_per_qr);
@@ -73,7 +75,7 @@ $codes = $codes_result->get_result();
 
 <!DOCTYPE html>
 <html lang="en">
-<head><title>QR Code Generator</title></head>
+<head><title>QR Code Generator</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="user-container">

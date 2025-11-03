@@ -9,6 +9,7 @@ $privacy_policy = get_setting('privacy_policy', $mysqli, 'Privacy policy not yet
 <head>
     <meta charset="UTF-8">
     <title>Privacy Policy</title>
+    <link rel="stylesheet" href="css/public_style.css">
 </head>
 <body>
     <?php include 'includes/site_header.php'; ?>

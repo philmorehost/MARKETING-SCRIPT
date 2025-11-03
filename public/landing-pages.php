@@ -36,7 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_page'])) {
     if ($user_balance >= $price_to_publish) {
         $mysqli->begin_transaction();
         try {
-            $mysqli->query("UPDATE users SET credit_balance = credit_balance - $price_to_publish WHERE id = $user_id");
+            $update_credits_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
+            $update_credits_stmt->bind_param('di', $price_to_publish, $user_id);
+            $update_credits_stmt->execute();
 
             $page_slug = uniqid(); // Simple unique slug
             $stmt = $mysqli->prepare("INSERT INTO landing_pages (user_id, list_id, page_slug, headline, content, status, cost_in_credits) VALUES (?, ?, ?, ?, ?, 'published', ?)");
@@ -67,6 +69,7 @@ $pages = $pages_result->get_result();
 <head>
     <meta charset="UTF-8">
     <title>Landing Page Builder</title>
+    <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

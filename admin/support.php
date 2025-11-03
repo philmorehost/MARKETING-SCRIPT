@@ -33,7 +33,7 @@ $tickets = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Support Tickets</title></head>
+<head><title>Support Tickets</title><link rel="stylesheet" href="../public/css/admin_style.css"></head>
 <body>
     <?php include 'includes/header.php'; ?>
     <div class="admin-container">

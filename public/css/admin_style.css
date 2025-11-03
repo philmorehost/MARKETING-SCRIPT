@@ -1,0 +1,82 @@
+/* --- admin_style.css --- */
+/* Inherits from dashboard_style.css for consistency, with overrides */
+
+:root {
+    --primary-color: #c0392b; /* Admin theme color */
+    --secondary-color: #a93226;
+    --sidebar-bg: #34495e;
+}
+
+body {
+    font-family: sans-serif;
+    margin: 0;
+    background-color: #f4f7f6;
+}
+
+.admin-container {
+    display: flex;
+}
+
+/* --- Layout --- */
+.sidebar {
+    width: 240px;
+    background-color: var(--sidebar-bg);
+    color: #ecf0f1;
+    height: 100vh;
+    padding-top: 20px;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 30px;
+}
+
+/* --- Header --- */
+.admin-header {
+    background-color: var(--sidebar-bg);
+    color: #fff;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.admin-header a { color: #fff; }
+
+/* --- Sidebar --- */
+.sidebar nav ul { list-style: none; padding: 0; }
+.sidebar nav a {
+    display: block;
+    padding: 10px 20px;
+    color: #ecf0f1;
+    text-decoration: none;
+}
+.sidebar nav a:hover {
+    background-color: rgba(0,0,0,0.2);
+}
+
+/* Re-using some components from dashboard styles */
+.card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+th {
+    background-color: #f4f7f6;
+}
