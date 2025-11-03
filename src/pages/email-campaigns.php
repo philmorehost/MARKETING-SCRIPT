@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../config/db.php';
 require_once '../src/lib/functions.php';
 
@@ -18,22 +17,21 @@ $lists_result->bind_param('i', $team_id);
 $lists_result->execute();
 $lists = $lists_result->get_result();
 
-// Fetch SMS cost from settings
-$price_per_sms_page = (float)get_setting('price_per_sms_page', $mysqli, 5);
+// Fetch email cost from settings
+$price_per_email = (float)get_setting('price_per_email_send', $mysqli, 1);
 
 // Handle Campaign Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
-    $sender_id = trim($_POST['sender_id'] ?? '');
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_email'])) {
+    $subject = trim($_POST['subject'] ?? '');
     $list_id = (int)($_POST['list_id'] ?? 0);
-    $sms_body = trim($_POST['message'] ?? '');
+    $html_content = trim($_POST['html_content'] ?? '');
 
     // 1. Calculate cost
-    $page_count = ceil(strlen($sms_body) / 160);
     $stmt = $mysqli->prepare("SELECT COUNT(*) as total FROM contact_list_map WHERE list_id = ?");
     $stmt->bind_param('i', $list_id);
     $stmt->execute();
     $total_recipients = $stmt->get_result()->fetch_assoc()['total'];
-    $total_cost = $total_recipients * $page_count * $price_per_sms_page;
+    $total_cost = $total_recipients * $price_per_email;
 
     // 2. Check user balance
     $stmt = $mysqli->prepare("SELECT credit_balance FROM users WHERE id = ?");
@@ -42,35 +40,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
     $user_balance = $stmt->get_result()->fetch_assoc()['credit_balance'];
 
     if ($user_balance >= $total_cost) {
-        // 3. Deduct credits & Queue campaign (Transaction recommended)
+        // 3. Deduct credits & Queue campaign
         $mysqli->begin_transaction();
         try {
-            $team_owner_id = $_SESSION['team_owner_id'];
+            // Note: Credits are shared by the team, deducted from the owner.
+            // A more complex system might track individual contributions.
+            $team_owner_id = $_SESSION['team_owner_id']; // Assuming this is in session
 
             $update_credits_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
             $update_credits_stmt->bind_param('di', $total_cost, $team_owner_id);
             $update_credits_stmt->execute();
 
-            $stmt = $mysqli->prepare("INSERT INTO sms_campaigns (user_id, team_id, sender_id, message_body, list_ids_json, total_pages, cost_in_credits, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'queued')");
-            $list_id_json = json_encode([$list_id]);
-            $stmt->bind_param('iisssids', $user_id, $team_id, $sender_id, $sms_body, $list_id_json, $page_count, $total_cost);
+            $stmt = $mysqli->prepare("INSERT INTO campaigns (user_id, team_id, subject, html_content, cost_in_credits, status) VALUES (?, ?, ?, ?, ?, 'queued')");
+            $stmt->bind_param('iisds', $user_id, $team_id, $subject, $html_content, $total_cost);
             $stmt->execute();
             $campaign_id = $stmt->insert_id;
 
-            // 4. Add contacts to sms_queue
-            $contacts_stmt = $mysqli->prepare("SELECT c.phone_number, c.id FROM contacts c JOIN contact_list_map clm ON c.id = clm.contact_id WHERE clm.list_id = ? AND c.phone_number IS NOT NULL");
+            // 4. Add contacts to campaign_queue
+            $contacts_stmt = $mysqli->prepare("SELECT c.email, c.id FROM contacts c JOIN contact_list_map clm ON c.id = clm.contact_id WHERE clm.list_id = ? AND c.email IS NOT NULL");
             $contacts_stmt->bind_param('i', $list_id);
             $contacts_stmt->execute();
             $contacts = $contacts_stmt->get_result();
 
-            $queue_stmt = $mysqli->prepare("INSERT INTO sms_queue (sms_campaign_id, contact_id, phone_number, message_pages) VALUES (?, ?, ?, ?)");
+            $queue_stmt = $mysqli->prepare("INSERT INTO campaign_queue (campaign_id, contact_id, email_address) VALUES (?, ?, ?)");
             while($contact = $contacts->fetch_assoc()){
-                 $queue_stmt->bind_param('iisi', $campaign_id, $contact['id'], $contact['phone_number'], $page_count);
+                 $queue_stmt->bind_param('iis', $campaign_id, $contact['id'], $contact['email']);
                  $queue_stmt->execute();
             }
 
             $mysqli->commit();
-            $message = "Campaign queued successfully! It will be sent shortly.";
+            $message = "Email campaign queued successfully!";
 
         } catch (Exception $e) {
             $mysqli->rollback();
@@ -87,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bulk SMS Service</title>
+    <title>Email Marketing Campaigns</title>
     <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
@@ -97,14 +96,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
             <?php include 'includes/sidebar.php'; ?>
         </aside>
         <main class="main-content">
-            <h1>Bulk SMS Service</h1>
+            <h1>Email Campaigns</h1>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
 
-            <form id="sms-form" action="sms-campaigns.php" method="post">
-                <input type="hidden" name="send_sms" value="1">
+            <form id="email-form" action="/public/email-campaigns" method="post">
+                <input type="hidden" name="send_email" value="1">
                 <div class="form-group">
-                    <label for="sender_id">Sender ID (max 11 chars)</label>
-                    <input type="text" id="sender_id" name="sender_id" maxlength="11" required>
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" required>
                 </div>
                 <div class="form-group">
                     <label for="list_id">Select Contact List</label>
@@ -116,12 +115,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="message">Message</label>
+                    <label for="html_content">Message Body (HTML)</label>
                     <button type="button" onclick="openAiModal()">AI Helper</button>
-                    <textarea id="message" name="message" rows="5" required></textarea>
-                    <div id="sms-counter">Characters: 0, Pages: 1, Credits: 0</div>
+                    <textarea id="html_content" name="html_content" rows="15" placeholder="Use TinyMCE here in a real build"></textarea>
+                    <p>Cost per recipient: <?php echo $price_per_email; ?> credit(s)</p>
                 </div>
-                <button type="submit">Send Campaign</button>
+                <button type="submit">Queue Campaign</button>
             </form>
         </main>
     </div>
@@ -130,25 +129,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
     <div id="ai-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
         <div style="background:#fff; width:500px; margin:100px auto; padding:20px;">
             <h2>AI Content Helper</h2>
-            <textarea id="ai-prompt" rows="4" style="width:100%;" placeholder="Enter your prompt... e.g., 'Write a short SMS message for a flash sale'"></textarea>
+            <textarea id="ai-prompt" rows="4" style="width:100%;" placeholder="Enter your prompt... e.g., 'Write a subject line for a 50% off sale'"></textarea>
             <div id="ai-result" style="border:1px solid #ccc; min-height:100px; padding:10px; margin-top:10px;"></div>
             <button onclick="generateContent()">Generate</button>
             <button onclick="insertContent()">Insert & Close</button>
             <button onclick="closeAiModal()">Cancel</button>
         </div>
     </div>
+    <?php include 'includes/footer.php'; ?>
     <script>
-        const messageInput = document.getElementById('message');
-        const counterDiv = document.getElementById('sms-counter');
-        const pricePerPage = <?php echo $price_per_sms_page; ?>;
-
-        messageInput.addEventListener('input', () => {
-            const charCount = messageInput.value.length;
-            const pageCount = Math.ceil(charCount / 160);
-            const creditCost = pageCount * pricePerPage;
-            counterDiv.textContent = `Characters: ${charCount}, Pages: ${pageCount}, Credits per recipient: ${creditCost}`;
-        });
-
         function openAiModal() { document.getElementById('ai-modal').style.display = 'block'; }
         function closeAiModal() { document.getElementById('ai-modal').style.display = 'none'; }
         function generateContent() {
@@ -175,10 +164,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
         }
         function insertContent() {
             const content = document.getElementById('ai-result').textContent;
-            document.getElementById('message').value += content;
+            document.getElementById('html_content').value += content;
             closeAiModal();
         }
     </script>
-    <?php include 'includes/footer.php'; ?>
 </body>
 </html>

@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../config/db.php';
 require_once '../src/lib/functions.php';
 
@@ -82,7 +81,7 @@ $posts = $posts_result->get_result();
 
             <hr>
             <h2>Create a Post</h2>
-            <form action="social-posts.php" method="post">
+            <form action="/public/social-posts" method="post">
                 <input type="hidden" name="schedule_post" value="1">
                 <textarea name="message" rows="5" required placeholder="What's on your mind?"></textarea><br>
 

@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../config/db.php';
 require_once '../src/lib/functions.php';
 
@@ -98,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_whatsapp'])) {
             <p><strong>Important:</strong> You may only send messages using pre-approved Meta/Gupshup templates.</p>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
 
-            <form action="whatsapp-campaigns.php" method="post">
+            <form action="/public/whatsapp-campaigns" method="post">
                 <input type="hidden" name="send_whatsapp" value="1">
                 <div class="form-group">
                     <label for="list_id">Select Contact List</label>

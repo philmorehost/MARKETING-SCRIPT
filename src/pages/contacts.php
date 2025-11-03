@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -64,7 +63,7 @@ $lists = $lists_result->get_result();
 
             <div class="create-list-form">
                 <h2>Create a New List</h2>
-                <form action="contacts.php" method="post">
+                <form action="/public/contacts" method="post">
                     <input type="text" name="list_name" placeholder="Enter new list name" required>
                     <button type="submit" name="create_list">Create List</button>
                 </form>
@@ -88,7 +87,7 @@ $lists = $lists_result->get_result();
                         <td><?php echo $list['contact_count']; ?></td>
                         <td>
                              <a href="view-list.php?id=<?php echo $list['id']; ?>">View/Import</a>
-                             <form action="contacts.php" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this list?');">
+                             <form action="/public/contacts" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this list?');">
                                 <input type="hidden" name="list_id" value="<?php echo $list['id']; ?>">
                                 <button type="submit" name="delete_list">Delete</button>
                              </form>

@@ -1,78 +1,75 @@
 <?php
+// A very simple front controller
+session_start();
 require_once '../config/db.php';
+require_once '../vendor/autoload.php';
 require_once '../src/lib/functions.php';
 
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+// --- Routing ---
+$request_uri = $_SERVER['REQUEST_URI'];
+$base_path = '/public'; // Adjust if your app is in a subdirectory
+$route = str_replace($base_path, '', $request_uri);
+$route = strtok($route, '?'); // Remove query string
+$route = trim($route, '/');
+$route = $route ?: 'home'; // Default route
 
-// Fetch homepage content from CMS
-$hero_title = get_setting('hero_title', $mysqli, 'Default Hero Title');
-$hero_subtitle = get_setting('hero_subtitle', $mysqli, 'Default hero subtitle text goes here.');
+// --- Define Routes ---
+// Maps a URL route to a PHP file.
+$routes = [
+    'home' => 'home.php', // The public homepage
+    'login' => 'login.php',
+    'logout' => 'logout.php',
+    'register' => 'register.php',
+    'forgot-password' => 'forgot-password.php',
+    'dashboard' => 'dashboard.php',
+    'team' => 'team.php',
+    'buy-credits' => 'buy-credits.php',
+    'billing' => 'billing.php',
+    'contact-lists' => 'contact-lists.php',
+    'email-campaigns' => 'email-campaigns.php',
+    'email-reports' => 'email-reports.php',
+    'view-email-report' => 'view-email-report.php',
+    'sms-campaigns' => 'sms-campaigns.php',
+    'sms-reports' => 'sms-reports.php',
+    'view-sms-report' => 'view-sms-report.php',
+    'whatsapp-campaigns' => 'whatsapp-campaigns.php',
+    'whatsapp-reports' => 'whatsapp-reports.php',
+    'view-whatsapp-report' => 'view-whatsapp-report.php',
+    'landing-pages' => 'landing-pages.php',
+    'qr-codes' => 'qr-codes.php',
+    'support' => 'support.php',
+    'api-access' => 'api-access.php',
 
-// Fetch services/features
-$features_result = $mysqli->query("SELECT icon, title, description FROM cms_features ORDER BY display_order ASC LIMIT 6");
+    // API / AJAX endpoints can be routed here too
+    'ajax/wizard_create_list' => 'ajax/wizard_create_list.php',
+    'ajax/wizard_complete' => 'ajax/wizard_complete.php',
 
-// Fetch testimonials
-$testimonials_result = $mysqli->query("SELECT author_name, quote, star_rating FROM testimonials ORDER BY display_order ASC LIMIT 3");
+    // Public CMS pages
+    'features' => 'features.php',
+    'pricing' => 'pricing.php',
+    'contact' => 'contact.php',
+    'privacy' => 'privacy.php',
+    'terms' => 'terms.php',
+];
 
-// Fetch pricing packages
-$pricing_result = $mysqli->query("SELECT name, price, credits, is_popular FROM credit_packages ORDER BY price ASC LIMIT 3");
+// --- Route Dispatcher ---
+if (array_key_exists($route, $routes)) {
+    // Before including, let's define a base URL constant for links/assets
+    define('BASE_URL', '/public');
 
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title><?php echo htmlspecialchars(get_setting('site_name', $mysqli, 'Marketing Platform')); ?></title>
-    <link rel="stylesheet" href="css/public_style.css"> <!-- We'll create this -->
-</head>
-<body>
-    <?php include 'includes/site_header.php'; ?>
+    // The actual page files are stored in the src directory to keep them
+    // outside of the web root for better security.
+    $page_file = __DIR__ . '/../src/pages/' . $routes[$route];
 
-    <section class="hero">
-        <h1><?php echo htmlspecialchars($hero_title); ?></h1>
-        <p><?php echo htmlspecialchars($hero_subtitle); ?></p>
-        <a href="register.php" class="cta-button">Get Started for Free</a>
-    </section>
-
-    <section class="services-summary">
-        <h2>Our Services</h2>
-        <div class="grid">
-            <?php while($feature = $features_result->fetch_assoc()): ?>
-            <div class="service-item">
-                <!-- Icon would go here, e.g., <i class="<?php echo $feature['icon']; ?>"></i> -->
-                <h3><?php echo htmlspecialchars($feature['title']); ?></h3>
-                <p><?php echo htmlspecialchars($feature['description']); ?></p>
-            </div>
-            <?php endwhile; ?>
-        </div>
-    </section>
-
-    <section class="testimonials">
-        <h2>What Our Users Say</h2>
-        <div class="grid">
-             <?php while($testimonial = $testimonials_result->fetch_assoc()): ?>
-            <div class="testimonial-item">
-                <p class="quote">"<?php echo htmlspecialchars($testimonial['quote']); ?>"</p>
-                <p class="author">- <?php echo htmlspecialchars($testimonial['author_name']); ?></p>
-            </div>
-            <?php endwhile; ?>
-        </div>
-    </section>
-
-    <section class="pricing-preview">
-        <h2>Simple, Pay-as-you-go Pricing</h2>
-         <div class="grid">
-            <?php while($package = $pricing_result->fetch_assoc()): ?>
-            <div class="pricing-item">
-                <h3><?php echo htmlspecialchars($package['name']); ?></h3>
-                <p class="price">$<?php echo number_format($package['price'], 2); ?></p>
-                <p class="credits"><?php echo number_format($package['credits']); ?> Credits</p>
-            </div>
-            <?php endwhile; ?>
-        </div>
-        <a href="pricing.php">See All Packages</a>
-    </section>
-
-    <?php include 'includes/site_footer.php'; ?>
-</body>
-</html>
+    if (file_exists($page_file)) {
+        include $page_file;
+    } else {
+        http_response_code(404);
+        echo "<h1>404 Not Found</h1>";
+        echo "<p>Page file missing: " . htmlspecialchars($page_file) . "</p>";
+    }
+} else {
+    http_response_code(404);
+    echo "<h1>404 Not Found</h1>";
+    echo "<p>No route defined for '<strong>" . htmlspecialchars($route) . "</strong>'.</p>";
+}

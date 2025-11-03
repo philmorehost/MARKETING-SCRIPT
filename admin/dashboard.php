@@ -1,5 +1,4 @@
 <?php
-session_start();
 
 // Security check: only admins can access
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
@@ -21,7 +20,7 @@ $open_tickets = 0;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="css/admin_style.css"> <!-- We will create this -->
+    <link rel="stylesheet" href="/public/css/admin_style.css"> <!-- We will create this -->
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

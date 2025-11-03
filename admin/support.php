@@ -1,5 +1,4 @@
 <?php
-session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: ../public/login.php');
     exit;
@@ -50,7 +49,7 @@ $tickets = $stmt->get_result();
                         <td><?php echo htmlspecialchars($ticket['subject']); ?></td>
                         <td><?php echo htmlspecialchars($ticket['user_email'] ?? $ticket['guest_email'] ?? 'N/A'); ?></td>
                         <td>
-                            <form action="support.php" method="post" style="display:inline;">
+                            <form action="" method="post" style="display:inline;">
                                 <input type="hidden" name="ticket_id" value="<?php echo $ticket['id']; ?>">
                                 <select name="status" onchange="this.form.submit()">
                                     <option value="open" <?php if($ticket['status']==='open') echo 'selected'; ?>>Open</option>

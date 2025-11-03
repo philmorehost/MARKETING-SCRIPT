@@ -1,14 +1,25 @@
 <nav class="user-sidebar">
     <ul>
-        <li><a href="dashboard.php">Dashboard</a></li>
-        <li><a href="buy-credits.php">Buy Credits</a></li>
-        <li><a href="transactions.php">Transaction History</a></li>
-        <li><a href="contacts.php">Contact Lists</a></li>
-        <li><a href="email-campaigns.php">Email Campaigns</a></li>
-        <li><a href="sms-campaigns.php">SMS Campaigns</a></li>
-        <li><a href="whatsapp-campaigns.php">WhatsApp Campaigns</a></li>
-        <!-- Add other links as modules are built -->
-        <li><a href="settings.php">Settings</a></li>
-        <li><a href="support.php">Support</a></li>
+        <li><a href="/public/dashboard">Dashboard</a></li>
+        <li><a href="/public/buy-credits">Buy Credits</a></li>
+        <li><a href="/public/billing">Billing & Transactions</a></li>
+        <hr>
+        <li><strong>Marketing Tools</strong></li>
+        <li><a href="/public/contact-lists">Contact Lists</a></li>
+        <li><a href="/public/email-campaigns">Email Campaigns</a></li>
+        <li><a href="/public/sms-campaigns">SMS Campaigns</a></li>
+        <li><a href="/public/whatsapp-campaigns">WhatsApp Campaigns</a></li>
+        <li><a href="/public/landing-pages">Landing Pages</a></li>
+        <li><a href="/public/qr-codes">QR Codes</a></li>
+        <hr>
+        <li><strong>Reports</strong></li>
+        <li><a href="/public/email-reports">Email Reports</a></li>
+        <li><a href="/public/sms-reports">SMS Reports</a></li>
+        <li><a href="/public/whatsapp-reports">WhatsApp Reports</a></li>
+        <hr>
+        <li><strong>Account</strong></li>
+        <li><a href="/public/team">Team Management</a></li>
+        <li><a href="/public/api-access">API Access</a></li>
+        <li><a href="/public/support">Support Tickets</a></li>
     </ul>
 </nav>

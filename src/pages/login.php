@@ -1,6 +1,6 @@
 <?php
-session_start();
-require_once '../config/db.php'; // Assumes installer created this
+// Note: session is started by index.php
+// Note: db connection is included by index.php
 
 $error_message = '';
 
@@ -23,29 +23,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($result->num_rows === 1) {
                 $user = $result->fetch_assoc();
                 if (password_verify($password, $user['password'])) {
-                    if ($user['status'] === 'active' || $user['status'] === 'pending') { // Allow pending for first login
-                        // Login success
+                    if ($user['status'] === 'active' || $user['status'] === 'pending') {
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['user_name'] = $user['name'];
                         $_SESSION['user_role'] = $user['role'];
                         $_SESSION['team_id'] = $user['team_id'];
 
-                        // If the user is part of a team, find the owner for credit deduction purposes
                         if ($user['team_id']) {
                             $team_stmt = $mysqli->prepare("SELECT owner_user_id FROM teams WHERE id = ?");
                             $team_stmt->bind_param('i', $user['team_id']);
                             $team_stmt->execute();
-                            $team = $team_stmt->get_result()->fetch_assoc();
-                            $_SESSION['team_owner_id'] = $team['owner_user_id'];
+                            $team_result = $team_stmt->get_result();
+                            if ($team_result->num_rows > 0) {
+                               $team = $team_result->fetch_assoc();
+                               $_SESSION['team_owner_id'] = $team['owner_user_id'];
+                            } else {
+                               $_SESSION['team_owner_id'] = $user['id'];
+                            }
                         } else {
-                             $_SESSION['team_owner_id'] = $user['id']; // User is their own "owner"
+                             $_SESSION['team_owner_id'] = $user['id'];
                         }
 
-                        // Redirect based on role
                         if ($user['role'] === 'admin') {
-                            header('Location: ../admin/dashboard.php');
+                            header('Location: /admin/dashboard.php'); // Admin is separate for now
                         } else {
-                            header('Location: dashboard.php');
+                            header('Location: /public/dashboard');
                         }
                         exit;
                     } elseif ($user['status'] === 'suspended') {
@@ -68,10 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="css/public_style.css">
-    <link rel="stylesheet" href="css/auth_style.css">
+    <link rel="stylesheet" href="/public/css/public_style.css">
 </head>
 <body>
     <div class="auth-container">
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($error_message): ?>
             <p class="error"><?php echo $error_message; ?></p>
         <?php endif; ?>
-        <form action="login.php" method="post">
+        <form action="/public/login" method="post">
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" required>
@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="button">Login</button>
         </form>
         <div class="footer-links">
-            <a href="forgot-password.php">Forgot Password?</a> | <a href="register.php">Don't have an account?</a>
+            <a href="/public/forgot-password">Forgot Password?</a> | <a href="/public/register">Don't have an account?</a>
         </div>
     </div>
 </body>

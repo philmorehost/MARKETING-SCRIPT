@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../config/db.php';
 require_once '../src/lib/functions.php';
 require_once '../vendor/autoload.php';
@@ -85,7 +84,7 @@ $codes = $codes_result->get_result();
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
 
             <h2>Create New QR Code</h2>
-            <form action="qr-codes.php" method="post">
+            <form action="/public/qr-codes" method="post">
                 <input type="hidden" name="generate_qr" value="1">
                 <p>Cost per QR Code: <?php echo $price_per_qr; ?> credits</p>
                 <input type="text" name="name" placeholder="Name (e.g., Business Card)" required><br>

@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../config/db.php';
 $user_id = $_SESSION['user_id'] ?? 0;
 $team_id = $_SESSION['team_id'] ?? 0;

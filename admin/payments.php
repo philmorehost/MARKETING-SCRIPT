@@ -1,5 +1,4 @@
 <?php
-session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: ../public/login.php');
     exit;
@@ -115,7 +114,7 @@ $pending_payments_result = $mysqli->query("SELECT mp.*, u.email FROM manual_paym
                         <td><a href="../public/<?php echo htmlspecialchars($payment['proof_path']); ?>" target="_blank">View Proof</a></td>
                         <td><?php echo $payment['created_at']; ?></td>
                         <td>
-                            <form action="payments.php" method="post" style="display:inline;">
+                            <form action="" method="post" style="display:inline;">
                                 <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
                                 <button type="submit" name="action" value="approve">Approve</button>
                                 <button type="submit" name="action" value="reject">Reject</button>

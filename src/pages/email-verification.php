@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../config/db.php';
 require_once '../src/lib/functions.php';
 
@@ -74,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_emails'])) {
             <h1>Bulk Email Verification</h1>
             <?php if ($message): ?><p><?php echo $message; ?></p><?php endif; ?>
 
-            <form action="email-verification.php" method="post">
+            <form action="/public/email-verification" method="post">
                 <input type="hidden" name="verify_emails" value="1">
                 <input type="text" name="job_name" placeholder="Job Name" required><br>
                 <textarea name="emails" rows="10" placeholder="Paste emails here, one per line or separated by commas."></textarea><br>

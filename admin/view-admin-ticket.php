@@ -1,5 +1,4 @@
 <?php
-session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: ../public/login.php');
     exit;
@@ -59,7 +58,7 @@ $replies = $replies_result->get_result();
             </div>
 
             <h2>Post a Reply</h2>
-            <form action="view-admin-ticket.php?id=<?php echo $ticket_id; ?>" method="post">
+            <form action="" method="post">
                 <input type="hidden" name="post_reply" value="1">
                 <textarea name="message" rows="5" required></textarea><br>
                 <button type="submit">Post Reply</button>

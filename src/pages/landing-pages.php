@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../config/db.php';
 require_once '../src/lib/functions.php';
 
@@ -82,7 +81,7 @@ $pages = $pages_result->get_result();
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
 
             <h2>Create New Page</h2>
-            <form action="landing-pages.php" method="post">
+            <form action="/public/landing-pages" method="post">
                 <input type="hidden" name="create_page" value="1">
                 <p>Cost to Publish: <?php echo $price_to_publish; ?> credits</p>
                 <input type="text" name="page_name" placeholder="Page Name (Internal)" required><br>

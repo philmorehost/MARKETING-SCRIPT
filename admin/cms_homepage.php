@@ -1,5 +1,4 @@
 <?php
-session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: ../public/login.php');
     exit;
@@ -41,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <main class="main-content">
             <h1>Homepage Editor</h1>
             <?php if ($message): ?><div class="message success"><?php echo $message; ?></div><?php endif; ?>
-            <form action="cms_homepage.php" method="post">
+            <form action="" method="post">
                 <h2>Hero Section</h2>
                 <label>Hero Title:</label>
                 <input type="text" name="settings[hero_title]" value="<?php echo htmlspecialchars(get_setting('hero_title', $mysqli)); ?>">

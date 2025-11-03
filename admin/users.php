@@ -1,5 +1,4 @@
 <?php
-session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: ../public/login.php');
     exit;
@@ -76,7 +75,7 @@ $users_result = $stmt->get_result();
             <h1>User Management</h1>
             <?php if ($message): ?><div class="message success"><?php echo $message; ?></div><?php endif; ?>
 
-            <form method="get" action="users.php">
+            <form method="get" action="">
                 <input type="text" name="search" placeholder="Search by name or email..." value="<?php echo htmlspecialchars($search); ?>">
                 <button type="submit">Search</button>
             </form>
@@ -104,7 +103,7 @@ $users_result = $stmt->get_result();
                         <td><?php echo $user['created_at']; ?></td>
                         <td>
                             <!-- Actions Form -->
-                            <form action="users.php" method="post" style="display:inline;">
+                            <form action="" method="post" style="display:inline;">
                                 <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                                 <?php if ($user['status'] === 'suspended'): ?>
                                 <button type="submit" name="action" value="activate">Activate</button>
@@ -114,7 +113,7 @@ $users_result = $stmt->get_result();
                                 <button type="submit" name="action" value="delete" onclick="return confirm('Are you sure?')">Delete</button>
                             </form>
                             <!-- Credit Form -->
-                            <form action="users.php" method="post" style="display:inline;">
+                            <form action="" method="post" style="display:inline;">
                                 <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                                 <input type="number" step="0.0001" name="credits" placeholder="Add/Remove Credits">
                                 <button type="submit" name="action" value="update_credits">Update</button>

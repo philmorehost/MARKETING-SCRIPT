@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -22,15 +21,21 @@ if (!$campaign) {
     exit;
 }
 
-// --- Simulated Analytics Data ---
-// In a real system, this data would be aggregated from the `campaign_events` table,
-// which would be populated by a webhook listener.
-$total_recipients = $mysqli->query("SELECT COUNT(*) FROM campaign_queue WHERE campaign_id = $campaign_id")->fetch_row()[0];
-$opens = rand( (int)($total_recipients * 0.2), (int)($total_recipients * 0.8) );
-$clicks = rand( (int)($opens * 0.1), (int)($opens * 0.5) );
-$bounces = rand(0, (int)($total_recipients * 0.05));
+// --- Fetch Real Analytics Data ---
+$total_recipients_query = $mysqli->query("SELECT COUNT(*) as total FROM campaign_queue WHERE campaign_id = $campaign_id");
+$total_recipients = $total_recipients_query->fetch_assoc()['total'];
+
+$opens_query = $mysqli->query("SELECT COUNT(DISTINCT contact_id) as total FROM campaign_events WHERE campaign_id = $campaign_id AND event_type = 'open'");
+$opens = $opens_query->fetch_assoc()['total'];
+
+$clicks_query = $mysqli->query("SELECT COUNT(DISTINCT contact_id) as total FROM campaign_events WHERE campaign_id = $campaign_id AND event_type = 'click'");
+$clicks = $clicks_query->fetch_assoc()['total'];
+
+$bounces_query = $mysqli->query("SELECT COUNT(*) as total FROM campaign_queue WHERE campaign_id = $campaign_id AND status = 'bounced'");
+$bounces = $bounces_query->fetch_assoc()['total'];
+
 $open_rate = ($total_recipients > 0) ? ($opens / $total_recipients) * 100 : 0;
-// --- End Simulation ---
+// --- End Analytics Data ---
 
 ?>
 <!DOCTYPE html>

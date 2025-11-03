@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -98,7 +97,7 @@ $contacts = $contacts_result->get_result();
 
             <div class="import-section">
                 <h2>Import Contacts from CSV</h2>
-                <form action="view-list.php?id=<?php echo $list_id; ?>" method="post" enctype="multipart/form-data">
+                <form action="/public/view-list?id=<?php echo $list_id; ?>" method="post" enctype="multipart/form-data">
                     <p>Upload a CSV file with at least an 'email' column.</p>
                     <input type="file" name="csv_file" accept=".csv" required>
                     <button type="submit">Import</button>

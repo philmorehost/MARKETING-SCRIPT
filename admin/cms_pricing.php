@@ -1,5 +1,4 @@
 <?php
-session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: ../public/login.php'); exit;
 }
@@ -56,7 +55,7 @@ $packages = $mysqli->query("SELECT * FROM credit_packages ORDER BY price");
             <?php if ($message): ?><div class="message success"><?php echo $message; ?></div><?php endif; ?>
 
             <h2>Add New Package</h2>
-            <form action="cms_pricing.php" method="post">
+            <form action="" method="post">
                 <input type="hidden" name="action" value="create">
                 <input type="text" name="name" placeholder="Package Name" required>
                 <input type="text" name="description" placeholder="Description">
@@ -73,7 +72,7 @@ $packages = $mysqli->query("SELECT * FROM credit_packages ORDER BY price");
             <?php while($pkg = $packages->fetch_assoc()): ?>
                 <tr>
                     <td>
-                        <form action="cms_pricing.php" method="post">
+                        <form action="" method="post">
                             <input type="hidden" name="action" value="update">
                             <input type="hidden" name="id" value="<?php echo $pkg['id']; ?>">
                             <input type="text" name="name" value="<?php echo htmlspecialchars($pkg['name']); ?>">
@@ -85,7 +84,7 @@ $packages = $mysqli->query("SELECT * FROM credit_packages ORDER BY price");
                         </form>
                     </td>
                     <td>
-                        <form action="cms_pricing.php" method="post" onsubmit="return confirm('Delete this package?');">
+                        <form action="" method="post" onsubmit="return confirm('Delete this package?');">
                              <input type="hidden" name="action" value="delete">
                              <input type="hidden" name="id" value="<?php echo $pkg['id']; ?>">
                              <button type="submit">Delete</button>

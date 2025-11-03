@@ -1,5 +1,4 @@
 <?php
-session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: ../public/login.php');
     exit;
@@ -51,7 +50,7 @@ function get_setting($key, $default = '') {
             <h1>Site Settings</h1>
             <?php if ($message): ?><div class="message success"><?php echo $message; ?></div><?php endif; ?>
 
-            <form action="settings.php" method="post">
+            <form action="" method="post">
 
                 <h2>General</h2>
                 <label>Site Name:</label>

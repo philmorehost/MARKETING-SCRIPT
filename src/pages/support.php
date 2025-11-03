@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -50,7 +49,7 @@ $tickets = $tickets_result->get_result();
             <?php if ($message): ?><p><?php echo $message; ?></p><?php endif; ?>
 
             <h2>Create New Ticket</h2>
-            <form action="support.php" method="post">
+            <form action="/public/support" method="post">
                 <input type="hidden" name="create_ticket" value="1">
                 <input type="text" name="subject" placeholder="Subject" required><br>
                 <textarea name="message" rows="5" placeholder="Describe your issue..." required></textarea><br>

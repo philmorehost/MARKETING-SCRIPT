@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
 
-        <form action="contact.php" method="post">
+        <form action="/public/contact" method="post">
             <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" id="name" name="name" required>
