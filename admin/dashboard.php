@@ -1,26 +1,42 @@
 <?php
-
 // Security check: only admins can access
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ../public/login.php');
+    header('Location: /public/login');
     exit;
 }
 
-require_once '../config/db.php';
-// We'll fetch stats here later
-$total_revenue = 0;
-$new_users_24h = 0;
-$pending_pops = 0;
-$open_tickets = 0;
+// Note: $mysqli is available from the script that includes this, e.g. a front controller for admin
+if (!isset($mysqli)) {
+    require_once '../config/db.php';
+    $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+}
+
+
+// --- Fetch Dashboard Stats ---
+
+// Total Revenue (Monthly)
+$rev_result = $mysqli->query("SELECT SUM(amount_usd) as total FROM transactions WHERE type = 'purchase' AND status = 'completed' AND created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)");
+$total_revenue = $rev_result->fetch_assoc()['total'] ?? 0;
+
+// New Users (24h)
+$users_result = $mysqli->query("SELECT COUNT(id) as total FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)");
+$new_users_24h = $users_result->fetch_assoc()['total'] ?? 0;
+
+// Pending POP Verifications
+$pops_result = $mysqli->query("SELECT COUNT(id) as total FROM manual_payments WHERE status = 'pending'");
+$pending_pops = $pops_result->fetch_assoc()['total'] ?? 0;
+
+// Open Support Tickets
+$tickets_result = $mysqli->query("SELECT COUNT(id) as total FROM support_tickets WHERE status = 'open'");
+$open_tickets = $tickets_result->fetch_assoc()['total'] ?? 0;
 
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="/public/css/admin_style.css"> <!-- We will create this -->
+    <link rel="stylesheet" href="/public/css/admin_style.css">
 </head>
 <body>
     <?php include APP_ROOT . '/admin/includes/header.php'; ?>
@@ -33,14 +49,13 @@ $open_tickets = 0;
         <main class="main-content">
             <h1>Dashboard</h1>
 
-            <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="card">
-                    <h3>Total Revenue (Monthly)</h3>
+                    <h3>Total Revenue (This Month)</h3>
                     <p>$<?php echo number_format($total_revenue, 2); ?></p>
                 </div>
                 <div class="card">
-                    <h3>New Users (24h)</h3>
+                    <h3>New Users (Last 24h)</h3>
                     <p><?php echo $new_users_24h; ?></p>
                 </div>
                 <div class="card">
@@ -52,8 +67,6 @@ $open_tickets = 0;
                     <p><?php echo $open_tickets; ?></p>
                 </div>
             </div>
-
-            <!-- Other dashboard content will go here -->
         </main>
     </div>
 

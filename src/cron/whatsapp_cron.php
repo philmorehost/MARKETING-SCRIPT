@@ -2,8 +2,8 @@
 // This script should be run every minute via a cron job.
 // Example: * * * * * /usr/bin/php /path/to/your/project/src/cron/whatsapp_cron.php >> /path/to/your/project/logs/whatsapp.log 2>&1
 
-require_once dirname(__FILE__) . '/../../config/db.php';
-require_once dirname(__FILE__) . '/../lib/functions.php';
+define('APP_ROOT', dirname(__DIR__, 2)); require_once APP_ROOT . '/config/db.php';
+require_once APP_ROOT . '/src/lib/functions.php';
 
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($mysqli->connect_error) {

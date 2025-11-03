@@ -2,14 +2,16 @@
 // --- campaign_cron.php ---
 // This script should be executed by a cron job every minute.
 
-require_once dirname(__FILE__) . '/../../config/db.php';
-require_once dirname(__FILE__) . '/../lib/functions.php';
-require_once dirname(__FILE__) . '/../../vendor/autoload.php';
+define('APP_ROOT', dirname(__DIR__, 2));
+require_once APP_ROOT . '/config/db.php';
+require_once APP_ROOT . '/src/lib/functions.php';
+require_once APP_ROOT . '/vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+if ($mysqli->connect_error) { die("DB connection error"); }
 
 // --- Settings ---
 $max_emails_per_hour = (int)get_setting('max_emails_per_hour', $mysqli, 300);
@@ -28,7 +30,7 @@ $emails_to_send = min($batch_limit, $max_emails_per_hour - $sent_this_hour);
 
 // --- Main Logic ---
 $stmt = $mysqli->prepare(
-    "SELECT q.id, q.email_address, c.subject, c.html_content
+    "SELECT q.id, q.email_address, c.subject, c.html_content, q.campaign_id
      FROM campaign_queue q
      JOIN campaigns c ON q.campaign_id = c.id
      WHERE q.status = 'queued'
@@ -44,13 +46,14 @@ if ($queue_items->num_rows === 0) {
     exit;
 }
 
+$update_stmt = $mysqli->prepare("UPDATE campaign_queue SET status = ?, api_message_id = ? WHERE id = ?");
+
 while ($item = $queue_items->fetch_assoc()) {
     $queue_id = $item['id'];
 
-    // Mark as 'sending'
+    // Mark as 'sending' first
     $mysqli->query("UPDATE campaign_queue SET status = 'sending' WHERE id = $queue_id");
 
-    // --- Email Sending Logic ---
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
@@ -67,18 +70,26 @@ while ($item = $queue_items->fetch_assoc()) {
         $mail->Subject = $item['subject'];
         $mail->Body    = $item['html_content'];
 
-        $mail->send();
+        if ($mail->send()) {
+            $status = 'sent';
+            $message_id = trim($mail->getLastMessageID(), '<>');
 
-        // On success:
-        $mysqli->query("UPDATE campaign_queue SET status = 'sent' WHERE id = $queue_id");
-        $mysqli->query("INSERT INTO hourly_email_log (campaign_id, sent_at) VALUES ( (SELECT campaign_id FROM campaign_queue WHERE id = $queue_id), NOW() )");
-        echo "Successfully sent email to {$item['email_address']}\n";
+            $update_stmt->bind_param('ssi', $status, $message_id, $queue_id);
+            $update_stmt->execute();
 
+            $mysqli->query("INSERT INTO hourly_email_log (campaign_id) VALUES ({$item['campaign_id']})");
+            echo "Successfully sent email to {$item['email_address']} (MsgID: {$message_id})\n";
+        } else {
+            throw new Exception($mail->ErrorInfo);
+        }
     } catch (Exception $e) {
-        // On failure:
-        $mysqli->query("UPDATE campaign_queue SET status = 'failed' WHERE id = $queue_id");
-        echo "Failed to send email to {$item['email_address']}. Error: {$mail->ErrorInfo}\n";
+        $status = 'failed';
+        $message_id = null;
+        $update_stmt->bind_param('ssi', $status, $message_id, $queue_id);
+        $update_stmt->execute();
+        echo "Failed to send email to {$item['email_address']}. Error: {$e->getMessage()}\n";
     }
 }
 
 echo "Campaign cron run finished.\n";
+$mysqli->close();

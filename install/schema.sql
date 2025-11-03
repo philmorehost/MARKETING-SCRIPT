@@ -151,8 +151,11 @@ CREATE TABLE `campaign_queue` (
   `campaign_id` int(11) NOT NULL,
   `contact_id` int(11) NOT NULL,
   `email_address` varchar(255) NOT NULL,
-  `status` enum('queued','sent','failed','bounced') NOT NULL DEFAULT 'queued',
-  PRIMARY KEY (`id`)
+  `status` enum('queued','sent','failed','bounced','opened','clicked') NOT NULL DEFAULT 'queued',
+  `api_message_id` varchar(255) DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `api_message_id` (`api_message_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `hourly_email_log` (
