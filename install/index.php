@@ -14,6 +14,9 @@ $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
 
 // --- Logic ---
 $error_message = '';
+$config_dir = APP_ROOT . '/config';
+$config_file = $config_dir . '/db.php';
+
 
 if ($step === 2 && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // --- Stage 2: Process Database Setup ---
@@ -34,24 +37,38 @@ if ($step === 2 && $_SERVER['REQUEST_METHOD'] === 'POST') {
         // Connection successful, save to session for the next step
         $_SESSION['db_connected'] = true;
 
-        // Create config file
-        $config_content = "<?php
+        // --- Create Config Directory and File ---
+        // Check if config directory exists, if not, create it.
+        if (!is_dir($config_dir)) {
+            if (!mkdir($config_dir, 0755, true)) {
+                $error_message = "Error: Could not create the config directory. Please check parent directory permissions.";
+            }
+        }
+
+        // Check if config directory is writable
+        if (is_dir($config_dir) && !is_writable($config_dir)) {
+             $error_message = "Error: The config directory is not writable. Please check file permissions.";
+        }
+
+        if (empty($error_message)) {
+            $config_content = "<?php
 define('DB_HOST', '" . addslashes($db_host) . "');
 define('DB_NAME', '" . addslashes($db_name) . "');
 define('DB_USER', '" . addslashes($db_user) . "');
 define('DB_PASS', '" . addslashes($db_pass) . "');
 ";
-        if (file_put_contents(APP_ROOT . '/config/db.php', $config_content) === false) {
-             $error_message = "Error: Could not write to config/db.php. Please check file permissions.";
-        } else {
-             // Redirect to step 3
-            header('Location: index.php?step=3');
-            exit;
+            if (file_put_contents($config_file, $config_content) === false) {
+                 $error_message = "Error: Could not write to config/db.php. Please check file permissions.";
+            } else {
+                 // Redirect to step 3
+                header('Location: index.php?step=3');
+                exit;
+            }
         }
     }
 } elseif ($step === 3 && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // --- Stage 3: Process Admin Account Creation ---
-    require_once APP_ROOT . '/config/db.php';
+    require_once $config_file;
 
     $admin_email = $_POST['admin_email'] ?? '';
     $admin_password = $_POST['admin_password'] ?? '';
