@@ -26,36 +26,38 @@ if ($posts_to_send->num_rows > 0) {
         $status = 'failed';
         $error_message = '';
 
-        if ($image_url) {
-            // Post with image
-            $url = "https://graph.facebook.com/{$page_id}/photos";
-            $data = [
-                'caption' => $message,
-                'url' => "http://{$_SERVER['HTTP_HOST']}/public{$image_url}",
-                'access_token' => $page_access_token
-            ];
-        } else {
-            // Post without image
-            $url = "https://graph.facebook.com/{$page_id}/feed";
-            $data = [
-                'message' => $message,
-                'access_token' => $page_access_token
-            ];
-        }
+        if ($post['provider'] === 'facebook') {
+            if ($image_url) {
+                // Post with image
+                $url = "https://graph.facebook.com/{$page_id}/photos";
+                $data = [
+                    'caption' => $message,
+                    'url' => "http://{$_SERVER['HTTP_HOST']}/public{$image_url}",
+                    'access_token' => $page_access_token
+                ];
+            } else {
+                // Post without image
+                $url = "https://graph.facebook.com/{$page_id}/feed";
+                $data = [
+                    'message' => $message,
+                    'access_token' => $page_access_token
+                ];
+            }
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
-        curl_close($ch);
-        $result = json_decode($response, true);
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($ch);
+            curl_close($ch);
+            $result = json_decode($response, true);
 
-        if (isset($result['id'])) {
-            $status = 'sent';
-        } else {
-            $error_message = $result['error']['message'] ?? 'Unknown error.';
-        }
+            if (isset($result['id'])) {
+                $status = 'sent';
+            } else {
+                $error_message = $result['error']['message'] ?? 'Unknown error.';
+            }
+        } // Add handlers for 'twitter' and 'linkedin' here
 
         $update_stmt->bind_param('ssi', $status, $error_message, $post['id']);
         $update_stmt->execute();

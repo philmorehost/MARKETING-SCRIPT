@@ -28,8 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['manual_payment'])) {
 
             if (move_uploaded_file($pop_file['tmp_name'], $filepath)) {
                 $db_filepath = '/uploads/pop/' . $filename;
-                $stmt = $mysqli->prepare("INSERT INTO manual_payments (user_id, credit_package_id, credit_package_name, amount, proof_path) VALUES (?, ?, ?, ?, ?)");
-                $stmt->bind_param('iisds', $user_id, $package_id, $package['name'], $package['price'], $db_filepath);
+                $stmt = $mysqli->prepare("INSERT INTO manual_payments (user_id, team_id, credit_package_id, credit_package_name, amount, proof_path) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param('iiisds', $user_id, $_SESSION['team_id'], $package_id, $package['name'], $package['price'], $db_filepath);
                 if ($stmt->execute()) {
                     $message = "Proof of payment uploaded successfully. Please wait for an admin to verify it.";
                 } else {

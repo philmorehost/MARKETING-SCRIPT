@@ -69,7 +69,44 @@ if ($messages_to_send->num_rows > 0) {
                 $api_message_id = $result['messageId'] ?? null;
             }
 
-        } // Add else if for 'meta' provider here
+        } elseif ($provider === 'meta') {
+            $api_token = get_setting('meta_api_token', $mysqli);
+            $phone_number_id = get_setting('meta_phone_number_id', $mysqli);
+
+            $postData = [
+                'messaging_product' => 'whatsapp',
+                'to' => $msg['phone_number'],
+                'type' => 'template',
+                'template' => [
+                    'name' => $msg['template_name'],
+                    'language' => [ 'code' => 'en_US' ],
+                    'components' => [
+                        [
+                            'type' => 'body',
+                            'parameters' => array_map(function($param) {
+                                return ['type' => 'text', 'text' => $param];
+                            }, $template_params)
+                        ]
+                    ]
+                ]
+            ];
+
+            $ch = curl_init("https://graph.facebook.com/v12.0/{$phone_number_id}/messages");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . $api_token,
+                'Content-Type: application/json'
+            ]);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+            $response = curl_exec($ch);
+            curl_close($ch);
+            $result = json_decode($response, true);
+
+            if (isset($result['messages'][0]['id'])) {
+                $status = 'sent';
+                $api_message_id = $result['messages'][0]['id'];
+            }
+        }
 
         $update_stmt->bind_param('ssi', $status, $api_message_id, $msg['id']);
         $update_stmt->execute();
