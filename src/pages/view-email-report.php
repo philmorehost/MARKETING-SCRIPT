@@ -62,15 +62,15 @@ $recent_events = $stmt_events->get_result();
 <html lang="en">
 <head>
     <title>Report: <?php echo htmlspecialchars($campaign['subject']); ?></title>
-    <link rel="stylesheet" href="/public/css/dashboard_style.css">
+    <link rel="stylesheet" href="/css/dashboard_style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
-            <a href="/public/email-reports" class="back-link">&larr; Back to all reports</a>
+            <a href="/email-reports" class="back-link">&larr; Back to all reports</a>
             <h1><?php echo htmlspecialchars($campaign['subject']); ?></h1>
             <div class="stats-grid">
                 <div class="card"><h3>Total Recipients</h3><p><?php echo $stats['total_recipients']; ?></p></div>
@@ -119,6 +119,6 @@ $recent_events = $stmt_events->get_result();
             options: { scales: { y: { beginAtZero: true } }, responsive: true, plugins: { title: { display: true, text: 'Engagement Over First 24 Hours' } } }
         });
     </script>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

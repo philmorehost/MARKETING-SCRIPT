@@ -66,17 +66,17 @@ $jobs = $jobs_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Email Verification</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
+<head><title>Email Verification</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Bulk Email Verification</h1>
             <?php if ($message): ?><div class="message"><?php echo htmlspecialchars($message); ?></div><?php endif; ?>
             <div class="card">
                 <h2>New Verification Job</h2>
-                <form action="/public/email-verification" method="post">
+                <form action="/email-verification" method="post">
                     <input type="hidden" name="verify_emails" value="1">
                     <div class="form-group"><label for="job_name">Job Name</label><input type="text" id="job_name" name="job_name" required></div>
                     <div class="form-group"><label for="emails">Paste Emails</label><textarea id="emails" name="emails" rows="10" placeholder="Paste emails here, one per line or separated by commas."></textarea></div>
@@ -118,6 +118,6 @@ $jobs = $jobs_result->get_result();
             costDiv.textContent = `Emails detected: ${emailCount} | Estimated Cost: ${totalCost} credits`;
         });
     </script>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

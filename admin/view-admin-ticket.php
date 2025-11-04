@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: /login.php');
+    header('Location: /login');
     exit;
 }
 $admin_id = $_SESSION['user_id'];
@@ -11,7 +11,7 @@ $stmt->bind_param('i', $ticket_id);
 $stmt->execute();
 $ticket = $stmt->get_result()->fetch_assoc();
 if (!$ticket) {
-    header('Location: support.php');
+    header('Location: /support');
     exit;
 }
 
@@ -38,7 +38,7 @@ $replies = $replies_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Admin: View Ticket</title><link rel="stylesheet" href="/css/admin_style.css"></head>
+<head><title>Admin: View Ticket</title><link rel="stylesheet" href="../css/admin_style.css"></head>
 <body>
     <?php include APP_ROOT . '/admin/includes/header.php'; ?>
     <div class="admin-container">

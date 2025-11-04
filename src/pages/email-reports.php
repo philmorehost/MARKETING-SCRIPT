@@ -33,14 +33,14 @@ $campaigns = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Email Campaign Reports</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
+<head><title>Email Campaign Reports</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Email Campaign Reports</h1>
-            <form method="get" action="/public/email-reports">
+            <form method="get" action="/email-reports">
                 <input type="text" name="search" placeholder="Search by subject..." value="<?php echo htmlspecialchars($search); ?>">
                 <button type="submit">Search</button>
             </form>
@@ -61,7 +61,7 @@ $campaigns = $stmt->get_result();
                             <td><?php echo $campaign['total_clicks']; ?> (<?php echo round($click_rate, 2); ?>%)</td>
                             <td><?php echo htmlspecialchars($campaign['status']); ?></td>
                             <td><?php echo $campaign['created_at']; ?></td>
-                            <td><a href="/public/view-email-report?id=<?php echo $campaign['id']; ?>">View Details</a></td>
+                            <td><a href="/view-email-report?id=<?php echo $campaign['id']; ?>">View Details</a></td>
                         </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
@@ -72,6 +72,6 @@ $campaigns = $stmt->get_result();
             </div>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $automation['status'] = $new_status; // Update for display
         $message = "Automation status updated.";
     }
-    header("Location: /public/view-automation?id=" . $automation_id); exit;
+    header("Location: /view-automation?id=" . $automation_id); exit;
 }
 
 // Fetch steps
@@ -69,17 +69,17 @@ $steps = $steps_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Edit Automation</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
+<head><title>Edit Automation</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
-            <a href="/public/automations" class="back-link">&larr; Back to Automations</a>
+            <a href="/automations" class="back-link">&larr; Back to Automations</a>
             <h1><?php echo htmlspecialchars($automation['name']); ?></h1>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
             <div class="card">
-                <form action="/public/view-automation?id=<?php echo $automation_id; ?>" method="post">
+                <form action="/view-automation?id=<?php echo $automation_id; ?>" method="post">
                     <input type="hidden" name="action" value="toggle_status">
                     <strong>Status:</strong> <?php echo ucfirst($automation['status']); ?>
                     <button type="submit"><?php echo $automation['status'] === 'active' ? 'Pause' : 'Activate'; ?></button>
@@ -98,7 +98,7 @@ $steps = $steps_result->get_result();
                                     <strong>Send email:</strong> "<?php echo htmlspecialchars($step['email_subject'] ?? 'Template not found'); ?>"
                                 <?php endif; ?>
                             </div>
-                            <form action="/public/view-automation?id=<?php echo $automation_id; ?>" method="post" class="delete-form">
+                            <form action="/view-automation?id=<?php echo $automation_id; ?>" method="post" class="delete-form">
                                 <input type="hidden" name="action" value="delete_step">
                                 <input type="hidden" name="step_id" value="<?php echo $step['id']; ?>">
                                 <button type="submit" class="danger" onclick="return confirm('Delete this step?')">&times;</button>
@@ -115,7 +115,7 @@ $steps = $steps_result->get_result();
                 <h2>Add a Step</h2>
                 <div id="step-forms">
                     <h3>Wait Step</h3>
-                    <form action="/public/view-automation?id=<?php echo $automation_id; ?>" method="post">
+                    <form action="/view-automation?id=<?php echo $automation_id; ?>" method="post">
                         <input type="hidden" name="action" value="add_step">
                         <input type="hidden" name="type" value="wait">
                         <div class="form-group"><label>Days to wait:</label><input type="number" name="wait_days" min="1" value="1" required></div>
@@ -123,7 +123,7 @@ $steps = $steps_result->get_result();
                     </form>
                     <hr>
                     <h3>Send Email Step</h3>
-                    <form action="/public/view-automation?id=<?php echo $automation_id; ?>" method="post">
+                    <form action="/view-automation?id=<?php echo $automation_id; ?>" method="post">
                         <input type="hidden" name="action" value="add_step">
                         <input type="hidden" name="type" value="send_email">
                         <div class="form-group">
@@ -141,6 +141,6 @@ $steps = $steps_result->get_result();
             </div>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

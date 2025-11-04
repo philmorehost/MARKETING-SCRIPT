@@ -33,7 +33,7 @@ $features_result = $mysqli->query("SELECT * FROM cms_features ORDER BY display_o
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Features Editor</title><link rel="stylesheet" href="/public/css/admin_style.css"></head>
+<head><title>Features Editor</title><link rel="stylesheet" href="/css/admin_style.css"></head>
 <body>
     <?php include APP_ROOT . '/admin/includes/header.php'; ?>
     <div class="admin-container">

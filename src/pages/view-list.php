@@ -2,14 +2,14 @@
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: /login');
     exit;
 }
 $user_id = $_SESSION['user_id'];
 $team_id = $_SESSION['team_id'];
 $list_id = (int)($_GET['id'] ?? 0);
 if ($list_id === 0) {
-    header('Location: contacts.php');
+    header('Location: /contacts');
     exit;
 }
 
@@ -21,7 +21,7 @@ $stmt->bind_param('ii', $list_id, $team_id);
 $stmt->execute();
 $list = $stmt->get_result()->fetch_assoc();
 if (!$list) {
-    header('Location: contacts.php');
+    header('Location: /contacts');
     exit;
 }
 $list_name = $list['list_name'];
@@ -82,13 +82,13 @@ $contacts = $contacts_result->get_result();
 <head>
     <meta charset="UTF-8">
     <title>View List: <?php echo htmlspecialchars($list_name); ?></title>
-    <link rel="stylesheet" href="/css/dashboard_style.css">
+    <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
         <aside class="sidebar">
-            <?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?>
+            <?php include APP_ROOT . '/public/includes/sidebar.php'; ?>
         </aside>
         <main class="main-content">
             <h1>Viewing List: "<?php echo htmlspecialchars($list_name); ?>"</h1>
@@ -96,7 +96,7 @@ $contacts = $contacts_result->get_result();
 
             <div class="import-section">
                 <h2>Import Contacts from CSV</h2>
-                <form action="/public/view-list?id=<?php echo $list_id; ?>" method="post" enctype="multipart/form-data">
+                <form action="/view-list?id=<?php echo $list_id; ?>" method="post" enctype="multipart/form-data">
                     <p>Upload a CSV file with at least an 'email' column.</p>
                     <input type="file" name="csv_file" accept=".csv" required>
                     <button type="submit">Import</button>
@@ -126,6 +126,6 @@ $contacts = $contacts_result->get_result();
             </table>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

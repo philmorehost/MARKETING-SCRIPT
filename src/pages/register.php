@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Register</title>
-    <link rel="stylesheet" href="/css/public_style.css">
+    <link rel="stylesheet" href="css/public_style.css">
 </head>
 <body>
     <div class="auth-container">
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($success_message): ?><p class="message success"><?php echo $success_message; ?></p><?php endif; ?>
 
         <?php if (!$success_message): ?>
-        <form action="/public/register?invite_token=<?php echo htmlspecialchars($invite_token ?? ''); ?>" method="post">
+        <form action="/register?invite_token=<?php echo htmlspecialchars($invite_token ?? ''); ?>" method="post">
             <div class="form-group">
                 <label for="name">Full Name</label>
                 <input type="text" id="name" name="name" required>

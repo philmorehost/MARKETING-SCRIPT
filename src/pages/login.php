@@ -66,8 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
-    <link rel="stylesheet" href="/public/css/public_style.css">
-    <link rel="stylesheet" href="/public/css/auth_style.css">
+    <link rel="stylesheet" href="/css/public_style.css">
+    <link rel="stylesheet" href="/css/auth_style.css">
 </head>
 <body>
     <div class="auth-container">
@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($error_message): ?>
             <p class="error"><?php echo $error_message; ?></p>
         <?php endif; ?>
-        <form action="/public/login" method="post">
+        <form action="/login" method="post">
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" required>
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="button">Login</button>
         </form>
         <div class="footer-links">
-            <a href="/public/forgot-password">Forgot Password?</a> | <a href="/public/register">Don't have an account?</a>
+            <a href="/forgot-password">Forgot Password?</a> | <a href="/register">Don't have an account?</a>
         </div>
     </div>
 </body>

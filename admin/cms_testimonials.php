@@ -32,7 +32,7 @@ $testimonials = $mysqli->query("SELECT * FROM testimonials ORDER BY display_orde
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Testimonials Editor</title><link rel="stylesheet" href="/public/css/admin_style.css"></head>
+<head><title>Testimonials Editor</title><link rel="stylesheet" href="/css/admin_style.css"></head>
 <body>
     <?php include APP_ROOT . '/admin/includes/header.php'; ?>
     <div class="admin-container">

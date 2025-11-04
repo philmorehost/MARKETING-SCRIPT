@@ -12,7 +12,7 @@ $transactions = $mysqli->query("SELECT t.*, u.email FROM transactions t JOIN use
 <head>
     <meta charset="UTF-8">
     <title>All Transactions</title>
-    <link rel="stylesheet" href="/public/css/admin_style.css">
+    <link rel="stylesheet" href="/css/admin_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

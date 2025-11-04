@@ -3,7 +3,7 @@ require_once '../config/db.php';
 $user_id = $_SESSION['user_id'] ?? 0;
 $ticket_id = (int)($_GET['id'] ?? 0);
 if ($user_id === 0 || $ticket_id === 0) {
-    header('Location: login.php');
+    header('Location: /login');
     exit;
 }
 
@@ -14,7 +14,7 @@ $stmt->bind_param('ii', $ticket_id, $user_id);
 $stmt->execute();
 $ticket = $stmt->get_result()->fetch_assoc();
 if (!$ticket) {
-    header('Location: support.php');
+    header('Location: /support');
     exit;
 }
 
@@ -38,11 +38,11 @@ $replies = $replies_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Viewing Ticket</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
+<head><title>Viewing Ticket</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1><?php echo htmlspecialchars($ticket['subject']); ?></h1>
             <p>Status: <?php echo htmlspecialchars($ticket['status']); ?></p>
@@ -59,13 +59,13 @@ $replies = $replies_result->get_result();
             </div>
 
             <h2>Post a Reply</h2>
-            <form action="/public/view-ticket?id=<?php echo $ticket_id; ?>" method="post">
+            <form action="/view-ticket?id=<?php echo $ticket_id; ?>" method="post">
                 <input type="hidden" name="post_reply" value="1">
                 <textarea name="message" rows="5" required></textarea><br>
                 <button type="submit">Post Reply</button>
             </form>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

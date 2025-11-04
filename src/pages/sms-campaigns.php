@@ -70,16 +70,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Bulk SMS Service</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
+<head><title>Bulk SMS Service</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Bulk SMS Service</h1>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
             <div class="card">
-                <form id="sms-form" action="/public/sms-campaigns" method="post">
+                <form id="sms-form" action="/sms-campaigns" method="post">
                     <input type="hidden" name="send_sms" value="1">
                     <div class="form-group">
                         <label for="sender_id">Sender ID (max 11 chars)</label>
@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
             const prompt = document.getElementById('ai-prompt').value;
             const resultDiv = document.getElementById('ai-result');
             resultDiv.textContent = 'Generating...';
-            fetch('/public/ai-helper', {
+            fetch('/ai-helper', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                 body: 'prompt=' + encodeURIComponent(prompt)
@@ -173,6 +173,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
             updateCost(); // Recalculate cost after inserting
         }
     </script>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

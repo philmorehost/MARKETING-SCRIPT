@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_qr'])) {
         if ($user_balance >= $price_per_qr) {
             $mysqli->begin_transaction();
             try {
-                $upload_dir = APP_ROOT . '/public_html/uploads/qr/';
+                $upload_dir = APP_ROOT . '/uploads/qr/';
                 if (!is_dir($upload_dir)) { mkdir($upload_dir, 0755, true); }
                 $filename = uniqid('qr_') . '.png';
                 $filepath = $upload_dir . $filename;
@@ -69,17 +69,17 @@ $codes = $codes_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>QR Code Generator</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
+<head><title>QR Code Generator</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>QR Code Generator</h1>
             <?php if ($message): ?><div class="message"><?php echo htmlspecialchars($message); ?></div><?php endif; ?>
             <div class="card">
                 <h2>Create New QR Code</h2>
-                <form action="/public/qr-codes" method="post">
+                <form action="/qr-codes" method="post">
                     <input type="hidden" name="generate_qr" value="1">
                     <p>Cost per QR Code: <strong><?php echo $price_per_qr; ?> credits</strong></p>
                     <div class="form-group"><label for="name">Name</label><input type="text" id="name" name="name" placeholder="e.g., Business Card Link" required></div>
@@ -105,6 +105,6 @@ $codes = $codes_result->get_result();
             </div>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

@@ -3,7 +3,7 @@ require_once '../config/db.php';
 require_once '../src/lib/functions.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: /login');
     exit;
 }
 

@@ -55,7 +55,7 @@ if (isset($event_data['event']) && $event_data['event'] === 'charge.success') {
 
                     // --- Create a notification ---
                     $notif_message = "Your purchase of " . number_format($credits_to_add) . " credits was successful.";
-                    $stmt_notif = $mysqli->prepare("INSERT INTO notifications (user_id, team_id, message, link) VALUES (?, (SELECT team_id FROM users WHERE id = ? LIMIT 1), ?, '/public/billing')");
+                    $stmt_notif = $mysqli->prepare("INSERT INTO notifications (user_id, team_id, message, link) VALUES (?, (SELECT team_id FROM users WHERE id = ? LIMIT 1), ?, '/billing')");
                     $stmt_notif->bind_param('iis', $user_id, $user_id, $notif_message);
                     $stmt_notif->execute();
                     // --- End notification ---

@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_page'])) {
 
                 $image_path = null;
                 if ($image && $image['error'] === UPLOAD_ERR_OK) {
-                    $upload_dir = APP_ROOT . '/public_html/uploads/landing_pages/';
+                    $upload_dir = APP_ROOT . '/uploads/landing_pages/';
                     if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
                     $filename = uniqid('lp_', true) . '.' . pathinfo($image['name'], PATHINFO_EXTENSION);
                     if (move_uploaded_file($image['tmp_name'], $upload_dir . $filename)) {
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_page'])) {
                 $stmt_insert->execute();
 
                 $mysqli->commit();
-                $message = "Landing page published successfully! URL: <a href='/public/p/{$page_slug}' target='_blank'>/public/p/{$page_slug}</a>";
+                $message = "Landing page published successfully! URL: <a href='/p/{$page_slug}' target='_blank'>/p/{$page_slug}</a>";
 
             } catch (Exception $e) {
                 $mysqli->rollback();
@@ -78,17 +78,17 @@ $pages = $pages_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Landing Page Builder</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
+<head><title>Landing Page Builder</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Landing Page Builder</h1>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
             <div class="card">
                 <h2>Create New Page</h2>
-                <form action="/public/landing-pages" method="post" enctype="multipart/form-data">
+                <form action="/landing-pages" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="create_page" value="1">
                     <p>One-time Cost to Publish: <strong><?php echo $price_to_publish; ?> credits</strong></p>
                     <div class="form-group"><label for="headline">Headline</label><input type="text" id="headline" name="headline" required></div>
@@ -118,7 +118,7 @@ $pages = $pages_result->get_result();
                         <?php while($page = $pages->fetch_assoc()): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($page['headline']); ?></td>
-                            <td><a href="/public/p/<?php echo $page['page_slug']; ?>" target="_blank">/p/<?php echo $page['page_slug']; ?></a></td>
+                            <td><a href="/p/<?php echo $page['page_slug']; ?>" target="_blank">/p/<?php echo $page['page_slug']; ?></a></td>
                             <td><?php echo $page['submissions']; ?></td>
                             <td><?php echo htmlspecialchars($page['status']); ?></td>
                             <td><?php echo $page['created_at']; ?></td>
@@ -132,6 +132,6 @@ $pages = $pages_result->get_result();
             </div>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

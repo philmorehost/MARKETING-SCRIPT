@@ -1,54 +1,93 @@
 <?php
-/**
- * index.php - Main entry point for the application
- * 
- * This is a placeholder file that can be customized for your specific needs.
- */
+// A very simple front controller
+define('APP_ROOT', __DIR__);
 
-// Optional: Set content type
-header('Content-Type: text/html; charset=utf-8');
+// Installer check
+if (!file_exists(APP_ROOT . '/config/db.php')) {
+    header('Location: /install/');
+    exit;
+}
 
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Placeholder</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-        }
-        .info {
-            color: #666;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Website Placeholder</h1>
-        <p>This is a placeholder page. Content will be added soon.</p>
-        <div class="info">
-            <p>File: index.php</p>
-            <p><?php echo 'Current time: ' . date('Y-m-d H:i:s'); ?></p>
-        </div>
-    </div>
-</body>
-</html>
+session_start();
+require_once APP_ROOT . '/config/db.php';
+require_once APP_ROOT . '/vendor/autoload.php';
+require_once APP_ROOT . '/src/lib/functions.php';
+
+$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+if ($mysqli->connect_error) {
+    // In a real app, you'd show a user-friendly error page.
+    die("Database connection failed: " . $mysqli->connect_error);
+}
+
+// --- Routing ---
+$request_uri = $_SERVER['REQUEST_URI'];
+$base_path = ''; // No base path since we're in the root
+$route = strtok($request_uri, '?'); // Remove query string
+$route = trim($route, '/');
+$route = $route ?: 'home'; // Default route
+
+// --- Define Routes ---
+// Maps a URL route to a PHP file.
+$routes = [
+    'home' => 'home.php', // The public homepage
+    'login' => 'login.php',
+    'logout' => 'logout.php',
+    'register' => 'register.php',
+    'forgot-password' => 'forgot-password.php',
+    'dashboard' => 'dashboard.php',
+    'team' => 'team.php',
+    'buy-credits' => 'buy-credits.php',
+    'billing' => 'billing.php',
+    'contact-lists' => 'contact-lists.php',
+    'email-campaigns' => 'email-campaigns.php',
+    'email-reports' => 'email-reports.php',
+    'view-email-report' => 'view-email-report.php',
+    'sms-campaigns' => 'sms-campaigns.php',
+    'sms-reports' => 'sms-reports.php',
+    'view-sms-report' => 'view-sms-report.php',
+    'whatsapp-campaigns' => 'whatsapp-campaigns.php',
+    'whatsapp-reports' => 'whatsapp-reports.php',
+    'view-whatsapp-report' => 'view-whatsapp-report.php',
+    'landing-pages' => 'landing-pages.php',
+    'qr-codes' => 'qr-codes.php',
+    'support' => 'support.php',
+    'api-access' => 'api-access.php',
+    'notifications' => 'notifications.php',
+    'notifications/mark-all-read' => 'notifications_mark_read.php',
+
+    // API / AJAX endpoints can be routed here too
+    'ajax/wizard_create_list' => 'ajax/wizard_create_list.php',
+    'ajax/wizard_complete' => 'ajax/wizard_complete.php',
+
+    // Public CMS pages
+    'features' => 'features.php',
+    'pricing' => 'pricing.php',
+    'contact' => 'contact.php',
+    'privacy' => 'privacy.php',
+    'terms' => 'terms.php',
+];
+
+// --- Route Dispatcher ---
+if (array_key_exists($route, $routes)) {
+    // Before including, let's define a base URL constant for links/assets
+    define('BASE_URL', '');
+
+    // The actual page files are stored in the src directory to keep them
+    // outside of the web root for better security.
+    $page_file = APP_ROOT . '/src/pages/' . $routes[$route];
+
+    if (file_exists($page_file)) {
+        include $page_file;
+    } else {
+        http_response_code(404);
+        echo "<h1>404 Not Found</h1>";
+        echo "<p>Page file missing: " . htmlspecialchars($page_file) . "</p>";
+    }
+} else {
+    http_response_code(404);
+    echo "<h1>404 Not Found</h1>";
+    echo "<p>No route defined for '<strong>" . htmlspecialchars($route) . "</strong>'.</p>";
+}
+
+// Close the database connection
+$mysqli->close();

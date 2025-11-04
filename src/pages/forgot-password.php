@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Forgot Password</title>
-    <link rel="stylesheet" href="/public/css/public_style.css">
+    <link rel="stylesheet" href="/css/public_style.css">
 </head>
 <body>
     <div class="auth-container">
@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($error_message): ?><p class="message error"><?php echo $error_message; ?></p><?php endif; ?>
         <?php if ($success_message): ?><p class="message success"><?php echo $success_message; ?></p><?php endif; ?>
 
-        <form action="/public/forgot-password" method="post">
+        <form action="/forgot-password" method="post">
             <div class="form-group">
                 <label for="email">Enter your email address</label>
                 <input type="email" id="email" name="email" required>
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="button">Send Reset Link</button>
         </form>
         <div class="footer-links">
-            <a href="/public/login">Back to Login</a>
+            <a href="/login">Back to Login</a>
         </div>
     </div>
 </body>

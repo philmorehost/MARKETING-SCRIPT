@@ -86,18 +86,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_whatsapp'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Bulk WhatsApp Service</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
+<head><title>Bulk WhatsApp Service</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Bulk WhatsApp Service</h1>
             <p class="warning"><strong>Important:</strong> You may only send messages using pre-approved Meta/Gupshup templates. Failure to do so may result in your account being blocked.</p>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
 
             <div class="card">
-                <form action="/public/whatsapp-campaigns" method="post">
+                <form action="/whatsapp-campaigns" method="post">
                     <input type="hidden" name="send_whatsapp" value="1">
                     <div class="form-group">
                         <label for="list_id">Select Contact List</label>
@@ -159,6 +159,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_whatsapp'])) {
         listSelect.addEventListener('change', updateCost);
         updateCost(); // Initial calculation
     </script>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

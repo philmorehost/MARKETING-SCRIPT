@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: /login.php');
+    header('Location: /login');
     exit;
 }
 $message = '';
@@ -30,7 +30,7 @@ $tickets = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Support Tickets</title><link rel="stylesheet" href="/css/admin_style.css"></head>
+<head><title>Support Tickets</title><link rel="stylesheet" href="../css/admin_style.css"></head>
 <body>
     <?php include APP_ROOT . '/admin/includes/header.php'; ?>
     <div class="admin-container">

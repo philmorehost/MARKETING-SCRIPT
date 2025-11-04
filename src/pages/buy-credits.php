@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['manual_payment'])) {
         $package = $stmt->get_result()->fetch_assoc();
 
         if ($package) {
-            $upload_dir = __DIR__ . '/..//uploads/pop/';
+            $upload_dir = __DIR__ . '/../../uploads/pop/';
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0755, true);
             }
@@ -51,11 +51,11 @@ $packages_result = $mysqli->query("SELECT id, name, description, price, credits,
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Buy Credits</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
+<head><title>Buy Credits</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Buy Credits</h1>
             <p>Our platform operates on a simple pay-as-you-go credit system. Purchase a credit package below to get started.</p>
@@ -68,7 +68,7 @@ $packages_result = $mysqli->query("SELECT id, name, description, price, credits,
                     <p class="price">$<?php echo number_format($pkg['price'], 2); ?></p>
                     <p class="credits"><?php echo number_format($pkg['credits']); ?> Credits</p>
                     <p><?php echo htmlspecialchars($pkg['description']); ?></p>
-                    <form action="/public/paystack-initialize" method="post">
+                    <form action="/paystack-initialize" method="post">
                          <input type="hidden" name="package_id" value="<?php echo $pkg['id']; ?>">
                          <input type="hidden" name="amount" value="<?php echo $pkg['price'] * 100; // Paystack expects amount in kobo ?>">
                          <button type="submit">Buy with Paystack</button>
@@ -83,7 +83,7 @@ $packages_result = $mysqli->query("SELECT id, name, description, price, credits,
                 <h2>Manual Bank Transfer</h2>
                 <p>Please make a payment to the account details below and upload your proof of payment (POP).</p>
                 <p><strong>Bank:</strong> First Bank | <strong>Account:</strong> 1234567890 | <strong>Name:</strong> Your Company Inc.</p>
-                <form action="/public/buy-credits" method="post" enctype="multipart/form-data">
+                <form action="/buy-credits" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="manual_payment" value="1">
                     <div class="form-group">
                         <label for="credit_package">Select Package:</label>
@@ -105,6 +105,6 @@ $packages_result = $mysqli->query("SELECT id, name, description, price, credits,
             </div>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

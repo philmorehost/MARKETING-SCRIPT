@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_post'])) {
 
                 $image_url = null;
                 if ($image && $image['error'] === UPLOAD_ERR_OK) {
-                    $upload_dir = APP_ROOT . '/public_html/uploads/social_media/';
+                    $upload_dir = APP_ROOT . '/uploads/social_media/';
                     if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
                     $filename = uniqid('sm_', true) . '.' . pathinfo($image['name'], PATHINFO_EXTENSION);
                     if (move_uploaded_file($image['tmp_name'], $upload_dir . $filename)) {
@@ -82,11 +82,11 @@ $posts_result->execute();
 $posts = $posts_result->get_result();
 ?>
 <!DOCTYPE html>
-<html lang="en"><head><title>Social Media Scheduler</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
+<html lang="en"><head><title>Social Media Scheduler</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Social Media Scheduler</h1>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
@@ -102,7 +102,7 @@ $posts = $posts_result->get_result();
             <hr>
             <div class="card">
                 <h2>Create a Post</h2>
-                <form action="/public/social-posts" method="post" enctype="multipart/form-data">
+                <form action="/social-posts" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="schedule_post" value="1">
                     <div class="form-group"><label for="message">Message</label><textarea id="message" name="message" rows="5" required></textarea></div>
                     <div class="form-group"><label for="image">Attach Image</label><input type="file" id="image" name="image" accept="image/*"></div>
@@ -143,6 +143,6 @@ $posts = $posts_result->get_result();
             </div>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

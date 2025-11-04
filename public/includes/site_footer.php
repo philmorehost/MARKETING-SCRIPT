@@ -10,11 +10,11 @@
         <div class="footer-links">
             <h4>Quick Links</h4>
             <ul>
-                <li><a href="/public/features">Features</a></li>
-                <li><a href="/public/pricing">Pricing</a></li>
-                <li><a href="/public/contact">Contact Us</a></li>
-                <li><a href="/public/privacy">Privacy Policy</a></li>
-                <li><a href="/public/terms">Terms of Service</a></li>
+                <li><a href="/features">Features</a></li>
+                <li><a href="/pricing">Pricing</a></li>
+                <li><a href="/contact">Contact Us</a></li>
+                <li><a href="/privacy">Privacy Policy</a></li>
+                <li><a href="/terms">Terms of Service</a></li>
             </ul>
         </div>
         <div class="footer-social">

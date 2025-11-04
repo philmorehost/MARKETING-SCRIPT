@@ -34,7 +34,7 @@ $open_tickets = $tickets_result->fetch_assoc()['total'] ?? 0;
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="/public/css/admin_style.css">
+    <link rel="stylesheet" href="/css/admin_style.css">
 </head>
 <body>
     <?php include APP_ROOT . '/admin/includes/header.php'; ?>

@@ -2,7 +2,7 @@
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: /login');
     exit;
 }
 $user_id = $_SESSION['user_id'];
@@ -48,13 +48,13 @@ $lists = $lists_result->get_result();
 <head>
     <meta charset="UTF-8">
     <title>Contact Lists</title>
-    <link rel="stylesheet" href="/css/dashboard_style.css">
+    <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
         <aside class="sidebar">
-            <?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?>
+            <?php include APP_ROOT . '/public/includes/sidebar.php'; ?>
         </aside>
         <main class="main-content">
             <h1>Contact Lists</h1>
@@ -62,7 +62,7 @@ $lists = $lists_result->get_result();
 
             <div class="create-list-form">
                 <h2>Create a New List</h2>
-                <form action="/public/contacts" method="post">
+                <form action="/contacts" method="post">
                     <input type="text" name="list_name" placeholder="Enter new list name" required>
                     <button type="submit" name="create_list">Create List</button>
                 </form>
@@ -86,7 +86,7 @@ $lists = $lists_result->get_result();
                         <td><?php echo $list['contact_count']; ?></td>
                         <td>
                              <a href="view-list.php?id=<?php echo $list['id']; ?>">View/Import</a>
-                             <form action="/public/contacts" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this list?');">
+                             <form action="/contacts" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this list?');">
                                 <input type="hidden" name="list_id" value="<?php echo $list['id']; ?>">
                                 <button type="submit" name="delete_list">Delete</button>
                              </form>
@@ -98,6 +98,6 @@ $lists = $lists_result->get_result();
 
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

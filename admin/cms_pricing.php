@@ -37,7 +37,7 @@ $packages = $mysqli->query("SELECT * FROM credit_packages ORDER BY price");
 <head>
     <meta charset="UTF-8">
     <title>Credit Package Editor</title>
-    <link rel="stylesheet" href="/public/css/admin_style.css">
+    <link rel="stylesheet" href="/css/admin_style.css">
 </head>
 <body>
     <?php include APP_ROOT . '/admin/includes/header.php'; ?>

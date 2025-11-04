@@ -16,17 +16,17 @@ $popular_package = $packages_result->fetch_assoc();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(get_setting('site_name', $mysqli, 'Marketing Platform')); ?></title>
-    <link rel="stylesheet" href="/public/css/public_style.css">
+    <link rel="stylesheet" href="/css/public_style.css">
 </head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/site_header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/site_header.php'; ?>
 
     <!-- Hero Section -->
     <header class="hero">
         <div class="container">
             <h1><?php echo htmlspecialchars($hero_title); ?></h1>
             <p><?php echo htmlspecialchars($hero_subtitle); ?></p>
-            <a href="/public/register" class="button-primary">Get Started for Free</a>
+            <a href="/register" class="button-primary">Get Started for Free</a>
         </div>
     </header>
 
@@ -71,12 +71,12 @@ $popular_package = $packages_result->fetch_assoc();
                 <h4><?php echo htmlspecialchars($popular_package['name']); ?></h4>
                 <p class="price">$<?php echo number_format($popular_package['price'], 2); ?></p>
                 <p><?php echo number_format($popular_package['credits']); ?> Credits</p>
-                <a href="/public/pricing" class="button-secondary">View All Plans</a>
+                <a href="/pricing" class="button-secondary">View All Plans</a>
             </div>
         </div>
     </section>
     <?php endif; ?>
 
-    <?php include APP_ROOT . '/public_html/includes/site_footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
 </body>
 </html>

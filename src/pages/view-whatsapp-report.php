@@ -2,7 +2,7 @@
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: /login');
     exit;
 }
 
@@ -11,7 +11,7 @@ $team_id = $_SESSION['team_id'];
 $campaign_id = $_GET['id'] ?? 0;
 
 if (!$campaign_id) {
-    header('Location: whatsapp-reports.php');
+    header('Location: /whatsapp-reports');
     exit;
 }
 
@@ -40,12 +40,12 @@ $messages = $stmt->get_result();
 <head>
     <meta charset="UTF-8">
     <title>WhatsApp Campaign Details - <?php echo htmlspecialchars($campaign['template_name']); ?></title>
-    <link rel="stylesheet" href="/css/dashboard_style.css">
+    <link rel="stylesheet" href="css/dashboard_style.css">
 </head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Campaign Report: <?php echo htmlspecialchars($campaign['template_name']); ?></h1>
             <p><strong>Date:</strong> <?php echo $campaign['created_at']; ?></p>
@@ -79,6 +79,6 @@ $messages = $stmt->get_result();
              <a href="whatsapp-reports.php">Back to WhatsApp Reports</a>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

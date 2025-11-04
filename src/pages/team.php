@@ -3,7 +3,7 @@ require_once '../config/db.php';
 require_once '../src/helpers.php'; // Assuming a helpers file for functions like generating tokens
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: /login');
     exit;
 }
 
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_member']) && $
             if ($stmt_insert->execute()) {
                 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
                 $host = $_SERVER['HTTP_HOST'];
-                $invite_link = "{$protocol}://{$host}/public/register.php?invite_token={$token}";
+                $invite_link = "{$protocol}://{$host}/register.php?invite_token={$token}";
                 $message = "Invitation created successfully. Share this link with the new member:";
             } else {
                 $message = "Error: Could not create invitation.";
@@ -81,11 +81,11 @@ if ($team_id && $team_role === 'owner') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Team Management</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
+<head><title>Team Management</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Team Management</h1>
             <?php if ($message): ?>
@@ -97,7 +97,7 @@ if ($team_id && $team_role === 'owner') {
 
             <?php if ($team_role === 'owner'): ?>
             <h2>Invite New Member</h2>
-            <form action="/public/team" method="post" class="form-simple">
+            <form action="/team" method="post" class="form-simple">
                 <input type="hidden" name="invite_member" value="1">
                 <div class="form-group">
                     <label for="email">Member's Email</label>
@@ -147,6 +147,6 @@ if ($team_id && $team_role === 'owner') {
             </table>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

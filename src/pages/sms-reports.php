@@ -32,14 +32,14 @@ $campaigns = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>SMS Campaign Reports</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
+<head><title>SMS Campaign Reports</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>SMS Campaign Reports</h1>
-            <form method="get" action="/public/sms-reports">
+            <form method="get" action="/sms-reports">
                 <input type="text" name="search" placeholder="Search by message content..." value="<?php echo htmlspecialchars($search); ?>">
                 <button type="submit">Search</button>
             </form>
@@ -59,7 +59,7 @@ $campaigns = $stmt->get_result();
                             <td><?php echo $campaign['total_failed']; ?></td>
                             <td><?php echo htmlspecialchars($campaign['status']); ?></td>
                             <td><?php echo $campaign['created_at']; ?></td>
-                            <td><a href="/public/view-sms-report?id=<?php echo $campaign['id']; ?>">View Details</a></td>
+                            <td><a href="/view-sms-report?id=<?php echo $campaign['id']; ?>">View Details</a></td>
                         </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
@@ -70,6 +70,6 @@ $campaigns = $stmt->get_result();
             </div>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

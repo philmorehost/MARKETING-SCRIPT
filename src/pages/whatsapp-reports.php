@@ -2,7 +2,7 @@
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: /login');
     exit;
 }
 $user_id = $_SESSION['user_id'];
@@ -24,15 +24,15 @@ $campaigns = $stmt->get_result();
 
 <!DOCTYPE html>
 <html lang="en">
-<head><title>WhatsApp Campaign Reports</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
+<head><title>WhatsApp Campaign Reports</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>WhatsApp Campaign Reports</h1>
 
-            <form method="get" action="/public/whatsapp-reports">
+            <form method="get" action="/whatsapp-reports">
                 <input type="text" name="search" placeholder="Search by template name..." value="<?php echo htmlspecialchars($search); ?>">
                 <button type="submit">Search</button>
             </form>
@@ -53,6 +53,6 @@ $campaigns = $stmt->get_result();
             </table>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

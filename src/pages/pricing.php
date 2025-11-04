@@ -13,10 +13,10 @@ $costs = [
 <head>
     <meta charset="UTF-8">
     <title>Pricing - <?php echo htmlspecialchars(get_setting('site_name', $mysqli)); ?></title>
-    <link rel="stylesheet" href="/public/css/public_style.css">
+    <link rel="stylesheet" href="/css/public_style.css">
 </head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/site_header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/site_header.php'; ?>
 
     <header class="page-header">
         <div class="container">
@@ -35,7 +35,7 @@ $costs = [
                     <p class="price">$<?php echo number_format($pkg['price'], 2); ?></p>
                     <p class="credits"><?php echo number_format($pkg['credits']); ?> Credits</p>
                     <p><?php echo htmlspecialchars($pkg['description']); ?></p>
-                    <a href="/public/register" class="button-primary">Get Started</a>
+                    <a href="/register" class="button-primary">Get Started</a>
                 </div>
                 <?php endwhile; ?>
             </div>
@@ -62,6 +62,6 @@ $costs = [
         </div>
     </section>
 
-    <?php include APP_ROOT . '/public_html/includes/site_footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
 </body>
 </html>

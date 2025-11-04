@@ -74,16 +74,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_email'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Email Campaigns</title><link rel="stylesheet" href="/public/css/dashboard_style.css"><script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script></head>
+<head><title>Email Campaigns</title><link rel="stylesheet" href="/css/dashboard_style.css"><script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Email Campaigns</h1>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
             <div class="card">
-                <form id="email-form" action="/public/email-campaigns" method="post">
+                <form id="email-form" action="/email-campaigns" method="post">
                     <input type="hidden" name="send_email" value="1">
                     <div class="form-group"><label for="subject">Subject</label><input type="text" id="subject" name="subject" required></div>
                     <div class="form-group">
@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_email'])) {
             const prompt = document.getElementById('ai-prompt').value;
             const resultDiv = document.getElementById('ai-result');
             resultDiv.textContent = 'Generating...';
-            fetch('/public/ai-helper', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'prompt=' + encodeURIComponent(prompt) })
+            fetch('/ai-helper', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'prompt=' + encodeURIComponent(prompt) })
             .then(response => response.json())
             .then(data => {
                 if (data.error) { resultDiv.textContent = 'Error: ' + data.error; }
@@ -140,6 +140,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_email'])) {
             document.getElementById('ai-modal').style.display = 'none';
         }
     </script>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

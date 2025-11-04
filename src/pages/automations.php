@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_automation']))
         $stmt->bind_param('iisi', $user_id, $team_id, $name, $trigger_list_id);
         if ($stmt->execute()) {
             $new_automation_id = $stmt->insert_id;
-            header("Location: /public/view-automation?id={$new_automation_id}"); // Redirect to edit page
+            header("Location: /view-automation?id={$new_automation_id}"); // Redirect to edit page
             exit;
         } else {
             $message = "Error: Could not create the automation.";
@@ -47,17 +47,17 @@ $automations = $automations_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Automations</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
+<head><title>Automations</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Marketing Automations</h1>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
             <div class="card">
                 <h2>Create New Automation</h2>
-                <form action="/public/automations" method="post">
+                <form action="/automations" method="post">
                     <input type="hidden" name="create_automation" value="1">
                     <div class="form-group"><label for="name">Automation Name</label><input type="text" id="name" name="name" placeholder="e.g., Welcome Series" required></div>
                     <div class="form-group">
@@ -84,7 +84,7 @@ $automations = $automations_result->get_result();
                             <td><?php echo htmlspecialchars($automation['name']); ?></td>
                             <td>Contact added to "<?php echo htmlspecialchars($contact_lists[$automation['trigger_list_id']] ?? 'Unknown List'); ?>"</td>
                             <td><?php echo htmlspecialchars(ucfirst($automation['status'])); ?></td>
-                            <td><a href="/public/view-automation?id=<?php echo $automation['id']; ?>">View/Edit Steps</a></td>
+                            <td><a href="/view-automation?id=<?php echo $automation['id']; ?>">View/Edit Steps</a></td>
                         </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
@@ -95,6 +95,6 @@ $automations = $automations_result->get_result();
             </div>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

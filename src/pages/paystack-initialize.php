@@ -3,7 +3,7 @@ require_once '../config/db.php';
 require_once '../src/lib/functions.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: /login');
     exit;
 }
 
@@ -11,7 +11,7 @@ $user_id = $_SESSION['user_id'];
 $package_id = (int)($_POST['package_id'] ?? 0);
 
 if ($package_id === 0) {
-    header('Location: buy-credits.php');
+    header('Location: /buy-credits');
     exit;
 }
 
@@ -40,7 +40,7 @@ if (empty($paystack_secret_key)) {
 $post_data = [
     'email' => $user['email'],
     'amount' => $package['price'] * 100, // Paystack expects amount in kobo
-    'callback_url' => "http://{$_SERVER['HTTP_HOST']}/public/paystack-verify.php",
+    'callback_url' => "http://{$_SERVER['HTTP_HOST']}/paystack-verify.php",
     'metadata' => [
         'user_id' => $user_id,
         'package_id' => $package_id

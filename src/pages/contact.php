@@ -30,10 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Contact Us - <?php echo htmlspecialchars(get_setting('site_name', $mysqli)); ?></title>
-    <link rel="stylesheet" href="/public/css/public_style.css">
+    <link rel="stylesheet" href="/css/public_style.css">
 </head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/site_header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/site_header.php'; ?>
 
     <header class="page-header">
         <div class="container">
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
 
                 <?php if (!$success): ?>
-                <form action="/public/contact" method="post">
+                <form action="/contact" method="post">
                     <div class="form-group"><label for="name">Name</label><input type="text" id="name" name="name" required></div>
                     <div class="form-group"><label for="email">Email</label><input type="email" id="email" name="email" required></div>
                     <div class="form-group"><label for="subject">Subject</label><input type="text" id="subject" name="subject" required></div>
@@ -62,6 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </section>
 
-    <?php include APP_ROOT . '/public_html/includes/site_footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
 </body>
 </html>

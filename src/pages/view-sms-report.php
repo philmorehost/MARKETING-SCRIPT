@@ -43,15 +43,15 @@ $statuses_result = $stmt_statuses->get_result();
 <html lang="en">
 <head>
     <title>SMS Report</title>
-    <link rel="stylesheet" href="/public/css/dashboard_style.css">
+    <link rel="stylesheet" href="/css/dashboard_style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
-            <a href="/public/sms-reports" class="back-link">&larr; Back to all reports</a>
+            <a href="/sms-reports" class="back-link">&larr; Back to all reports</a>
             <h1>SMS Report for: "<?php echo htmlspecialchars($campaign['sender_id']); ?>"</h1>
             <p><strong>Message:</strong> <?php echo htmlspecialchars($campaign['message_body']); ?></p>
 
@@ -95,6 +95,6 @@ $statuses_result = $stmt_statuses->get_result();
             options: { responsive: true, plugins: { title: { display: true, text: 'Delivery Status Breakdown' } } }
         });
     </script>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

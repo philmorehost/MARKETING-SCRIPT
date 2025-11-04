@@ -2,7 +2,7 @@
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: /login');
     exit;
 }
 $user_id = $_SESSION['user_id'];
@@ -38,17 +38,17 @@ $tickets = $tickets_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Support Tickets</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
+<head><title>Support Tickets</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Support Tickets</h1>
             <?php if ($message): ?><p><?php echo $message; ?></p><?php endif; ?>
 
             <h2>Create New Ticket</h2>
-            <form action="/public/support" method="post">
+            <form action="/support" method="post">
                 <input type="hidden" name="create_ticket" value="1">
                 <input type="text" name="subject" placeholder="Subject" required><br>
                 <textarea name="message" rows="5" placeholder="Describe your issue..." required></textarea><br>
@@ -72,6 +72,6 @@ $tickets = $tickets_result->get_result();
             </table>
         </main>
     </div>
-    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
 </body>
 </html>

@@ -21,9 +21,9 @@ $notifications = $stmt_notif->get_result();
 $unread_count = $notifications->num_rows;
 ?>
 <header class="user-header">
-    <div class="logo"><a href="/public/dashboard">My Dashboard</a></div>
+    <div class="logo"><a href="/dashboard">My Dashboard</a></div>
     <div class="header-right">
-         <a href="/public/buy-credits" class="button-small">Buy Credits</a>
+         <a href="/buy-credits" class="button-small">Buy Credits</a>
          <div class="notification-area">
             <div class="notification-bell" onclick="toggleNotifications()">
                 <i class="fa fa-bell"></i>
@@ -41,15 +41,15 @@ $unread_count = $notifications->num_rows;
                     <p>No new notifications.</p>
                 <?php endif; ?>
                 <div class="panel-footer">
-                    <a href="/public/notifications">View All</a>
-                    <a href="/public/notifications/mark-all-read">Mark all as read</a>
+                    <a href="/notifications">View All</a>
+                    <a href="/notifications/mark-all-read">Mark all as read</a>
                 </div>
             </div>
         </div>
         <div class="user-info">
             <span class="credit-balance">Credits: <?php echo number_format($user_credit_balance, 4); ?></span>
             <span>Welcome, <?php echo htmlspecialchars($_SESSION['user_name']); ?></span>
-            <a href="/public/logout">Logout</a>
+            <a href="/logout">Logout</a>
         </div>
     </div>
 </header>
