@@ -5,7 +5,7 @@
 $hero_title = get_content('hero_title', $mysqli, 'Powerful Email Marketing Made Simple');
 $hero_subtitle = get_content('hero_subtitle', $mysqli, 'Engage your audience, grow your business.');
 
-$features_result = $mysqli->query("SELECT icon, title, description FROM cms_features ORDER BY display_order ASC LIMIT 4");
+$services = json_decode(get_content('services_summary', $mysqli, '[]'), true);
 $testimonials_result = $mysqli->query("SELECT author_name, author_title, quote, star_rating FROM testimonials ORDER BY display_order ASC LIMIT 3");
 $packages_result = $mysqli->query("SELECT name, description, price, credits FROM credit_packages WHERE is_popular = 1 ORDER BY price ASC LIMIT 1");
 $popular_package = $packages_result->fetch_assoc();
