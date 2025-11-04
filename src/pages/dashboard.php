@@ -259,6 +259,7 @@ $chart_data = [
         });
 
         // Verification Pie Chart
+        <?php if (!empty($verification_jobs)): ?>
         const verificationCtx = document.getElementById('verificationPieChart').getContext('2d');
         new Chart(verificationCtx, {
             type: 'pie',
@@ -284,6 +285,7 @@ $chart_data = [
                 responsive: true
             }
         });
+        <?php endif; ?>
     });
 
     <?php if ($show_wizard): ?>
