@@ -52,6 +52,14 @@ if (http_response_code(200) && isset($event->event) && $event->event === 'charge
             $trans_stmt->execute();
 
             $mysqli->commit();
+
+            // Create notification
+            $team_id_stmt = $mysqli->prepare("SELECT team_id FROM users WHERE id = ?");
+            $team_id_stmt->bind_param('i', $user_id);
+            $team_id_stmt->execute();
+            $team_id = $team_id_stmt->get_result()->fetch_assoc()['team_id'];
+            create_notification($mysqli, $user_id, $team_id, "Your purchase of {$package['credits']} credits was successful (via webhook).", '/public/billing');
+
         } catch (mysqli_sql_exception $exception) {
             $mysqli->rollback();
             // Log the error

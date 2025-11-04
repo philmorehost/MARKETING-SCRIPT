@@ -55,6 +55,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['payment_id'])) {
                     $mysqli->commit();
                     $message = "Payment approved and credits added.";
 
+                    // Create notification
+                    $team_id_stmt = $mysqli->prepare("SELECT team_id FROM users WHERE id = ?");
+                    $team_id_stmt->bind_param('i', $user_id);
+                    $team_id_stmt->execute();
+                    $team_id = $team_id_stmt->get_result()->fetch_assoc()['team_id'];
+                    create_notification($mysqli, $user_id, $team_id, "Your manual payment for {$package_name} was approved. {$credits_to_add} credits have been added.", '/public/billing');
+
                 } catch (Exception $e) {
                     $mysqli->rollback();
                     $message = "An error occurred. Transaction rolled back.";

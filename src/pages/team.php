@@ -46,6 +46,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_member']) && $
                 $host = $_SERVER['HTTP_HOST'];
                 $invite_link = "{$protocol}://{$host}/public/register.php?invite_token={$token}";
                 $message = "Invitation created successfully. Share this link with the new member:";
+
+                // Notify user who was invited (though they don't have an account yet)
+                // In a real app, you'd send an email. For now, we'll skip this.
+
+                // Notify the team owner
+                create_notification($mysqli, $user_id, $team_id, "You invited {$invite_email} to join your team.", '/public/team');
+
             } else {
                 $message = "Error: Could not create invitation.";
             }

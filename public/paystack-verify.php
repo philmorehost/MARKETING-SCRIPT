@@ -53,6 +53,9 @@ if ($result['status'] === true && $result['data']['status'] === 'success') {
 
             $mysqli->commit();
 
+            // Create a notification
+            create_notification($mysqli, $user_id, $_SESSION['team_id'], "Your purchase of {$package['credits']} credits was successful.", '/public/billing');
+
             // Redirect to a success page
             $_SESSION['flash_message'] = "Payment successful! {$package['credits']} credits have been added to your account.";
             header('Location: /dashboard');
