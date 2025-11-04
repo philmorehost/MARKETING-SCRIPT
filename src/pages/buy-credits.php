@@ -48,6 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['manual_payment'])) {
 
 // Fetch credit packages
 $packages_result = $mysqli->query("SELECT id, name, description, price, credits, is_popular FROM credit_packages ORDER BY price");
+
+require_once APP_ROOT . '/src/lib/functions.php';
+$bank_details = get_setting('bank_details', $mysqli, 'Bank: N/A | Account: N/A | Name: N/A');
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -82,7 +86,9 @@ $packages_result = $mysqli->query("SELECT id, name, description, price, credits,
             <div class="manual-payment">
                 <h2>Manual Bank Transfer</h2>
                 <p>Please make a payment to the account details below and upload your proof of payment (POP).</p>
-                <p><strong>Bank:</strong> First Bank | <strong>Account:</strong> 1234567890 | <strong>Name:</strong> Your Company Inc.</p>
+                <div class="bank-details">
+                    <?php echo nl2br(htmlspecialchars($bank_details)); ?>
+                </div>
                 <form action="/public/buy-credits" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="manual_payment" value="1">
                     <div class="form-group">
