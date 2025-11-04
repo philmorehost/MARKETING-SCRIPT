@@ -92,9 +92,9 @@ $posts = $posts_result->get_result();
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
             <div class="card">
                 <h2>Connect Accounts</h2>
-                <p>Connect your social media accounts to get started. (OAuth setup is handled by the admin).</p>
+                <p>Connect your social media accounts to get started.</p>
                 <div class="social-buttons">
-                    <button disabled>Connect Facebook Page</button>
+                    <a href="/public/facebook_connect.php" class="button-primary">Connect Facebook Page</a>
                     <button disabled>Connect X (Twitter)</button>
                     <button disabled>Connect LinkedIn Page</button>
                 </div>
