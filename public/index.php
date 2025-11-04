@@ -14,7 +14,11 @@ if ($mysqli->connect_error) {
 
 // --- Routing ---
 $request_uri = $_SERVER['REQUEST_URI'];
-$base_path = '/public'; // Adjust if your app is in a subdirectory
+if (substr($request_uri, 0, 7) === '/public') {
+    $base_path = '/public';
+} else {
+    $base_path = '';
+}
 $route = str_replace($base_path, '', $request_uri);
 $route = strtok($route, '?'); // Remove query string
 $route = trim($route, '/');
