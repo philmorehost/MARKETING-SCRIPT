@@ -30,14 +30,14 @@ $stats = [
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="css/dashboard_style.css">
+    <link rel="stylesheet" href="/css/dashboard_style.css">
 </head>
 <body>
-    <?php include APP_ROOT . '/public/includes/header.php'; // We need to update this to show credits ?>
+    <?php include APP_ROOT . '/public_html/includes/header.php'; // We need to update this to show credits ?>
 
     <div class="user-container">
         <aside class="sidebar">
-            <?php include APP_ROOT . '/public/includes/sidebar.php'; ?>
+            <?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?>
         </aside>
         <main class="main-content">
             <h1>Dashboard</h1>
@@ -97,7 +97,7 @@ $stats = [
         </main>
     </div>
 
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
 
     <?php if ($show_wizard): ?>
     <script>

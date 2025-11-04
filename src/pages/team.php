@@ -81,11 +81,11 @@ if ($team_id && $team_role === 'owner') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Team Management</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
+<head><title>Team Management</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Team Management</h1>
             <?php if ($message): ?>
@@ -147,6 +147,6 @@ if ($team_id && $team_role === 'owner') {
             </table>
         </main>
     </div>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
 </body>
 </html>

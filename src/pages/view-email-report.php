@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /public/login');
+    header('Location: /login');
     exit;
 }
 $user_id = $_SESSION['user_id'];
@@ -12,7 +12,7 @@ $stmt_campaign = $mysqli->prepare("SELECT subject FROM campaigns WHERE id = ? AN
 $stmt_campaign->bind_param('ii', $campaign_id, $team_id);
 $stmt_campaign->execute();
 $campaign = $stmt_campaign->get_result()->fetch_assoc();
-if (!$campaign) { header('Location: /public/email-reports'); exit; }
+if (!$campaign) { header('Location: /email-reports'); exit; }
 
 // --- Fetch Aggregated Analytics Data ---
 $stmt_stats = $mysqli->prepare("
@@ -66,9 +66,9 @@ $recent_events = $stmt_events->get_result();
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <a href="/public/email-reports" class="back-link">&larr; Back to all reports</a>
             <h1><?php echo htmlspecialchars($campaign['subject']); ?></h1>
@@ -119,6 +119,6 @@ $recent_events = $stmt_events->get_result();
             options: { scales: { y: { beginAtZero: true } }, responsive: true, plugins: { title: { display: true, text: 'Engagement Over First 24 Hours' } } }
         });
     </script>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
 </body>
 </html>

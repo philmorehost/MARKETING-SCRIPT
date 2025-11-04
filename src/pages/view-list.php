@@ -82,13 +82,13 @@ $contacts = $contacts_result->get_result();
 <head>
     <meta charset="UTF-8">
     <title>View List: <?php echo htmlspecialchars($list_name); ?></title>
-    <link rel="stylesheet" href="css/dashboard_style.css">
+    <link rel="stylesheet" href="/css/dashboard_style.css">
 </head>
 <body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
     <div class="user-container">
         <aside class="sidebar">
-            <?php include APP_ROOT . '/public/includes/sidebar.php'; ?>
+            <?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?>
         </aside>
         <main class="main-content">
             <h1>Viewing List: "<?php echo htmlspecialchars($list_name); ?>"</h1>
@@ -126,6 +126,6 @@ $contacts = $contacts_result->get_result();
             </table>
         </main>
     </div>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
 </body>
 </html>

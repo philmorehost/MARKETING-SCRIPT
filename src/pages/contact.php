@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="/public/css/public_style.css">
 </head>
 <body>
-    <?php include APP_ROOT . '/public/includes/site_header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/site_header.php'; ?>
 
     <header class="page-header">
         <div class="container">
@@ -62,6 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </section>
 
-    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/site_footer.php'; ?>
 </body>
 </html>

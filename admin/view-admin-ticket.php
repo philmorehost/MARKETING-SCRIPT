@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ../public/login.php');
+    header('Location: /login.php');
     exit;
 }
 $admin_id = $_SESSION['user_id'];
@@ -38,7 +38,7 @@ $replies = $replies_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Admin: View Ticket</title><link rel="stylesheet" href="../public/css/admin_style.css"></head>
+<head><title>Admin: View Ticket</title><link rel="stylesheet" href="/css/admin_style.css"></head>
 <body>
     <?php include APP_ROOT . '/admin/includes/header.php'; ?>
     <div class="admin-container">

@@ -4,7 +4,7 @@ require_once APP_ROOT . '/config/db.php';
 require_once APP_ROOT . '/src/lib/functions.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /public/login');
+    header('Location: /login');
     exit;
 }
 $user_id = $_SESSION['user_id'];
@@ -72,9 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
 <html lang="en">
 <head><title>Bulk SMS Service</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Bulk SMS Service</h1>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
@@ -173,6 +173,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_sms'])) {
             updateCost(); // Recalculate cost after inserting
         }
     </script>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
 </body>
 </html>

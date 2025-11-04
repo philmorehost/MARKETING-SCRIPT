@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Register</title>
-    <link rel="stylesheet" href="css/public_style.css">
+    <link rel="stylesheet" href="/css/public_style.css">
 </head>
 <body>
     <div class="auth-container">

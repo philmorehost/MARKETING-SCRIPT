@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /public/login');
+    header('Location: /login');
     exit;
 }
 $user_id = $_SESSION['user_id'];
@@ -34,9 +34,9 @@ $campaigns = $stmt->get_result();
 <html lang="en">
 <head><title>SMS Campaign Reports</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>SMS Campaign Reports</h1>
             <form method="get" action="/public/sms-reports">
@@ -70,6 +70,6 @@ $campaigns = $stmt->get_result();
             </div>
         </main>
     </div>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
 </body>
 </html>

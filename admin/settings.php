@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ../public/login.php');
+    header('Location: /login.php');
     exit;
 }
 
@@ -36,7 +36,7 @@ function get_setting($key, $default = '') {
 <head>
     <meta charset="UTF-8">
     <title>Site Settings</title>
-    <link rel="stylesheet" href="../public/css/admin_style.css">
+    <link rel="stylesheet" href="/css/admin_style.css">
 </head>
 <body>
     <?php include APP_ROOT . '/admin/includes/header.php'; ?>

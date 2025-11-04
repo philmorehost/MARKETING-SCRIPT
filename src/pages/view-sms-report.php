@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /public/login');
+    header('Location: /login');
     exit;
 }
 $user_id = $_SESSION['user_id'];
@@ -12,7 +12,7 @@ $stmt_campaign = $mysqli->prepare("SELECT sender_id, message_body FROM sms_campa
 $stmt_campaign->bind_param('ii', $campaign_id, $team_id);
 $stmt_campaign->execute();
 $campaign = $stmt_campaign->get_result()->fetch_assoc();
-if (!$campaign) { header('Location: /public/sms-reports'); exit; }
+if (!$campaign) { header('Location: /sms-reports'); exit; }
 
 // --- Fetch Aggregated Stats ---
 $stmt_stats = $mysqli->prepare("
@@ -47,9 +47,9 @@ $statuses_result = $stmt_statuses->get_result();
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <a href="/public/sms-reports" class="back-link">&larr; Back to all reports</a>
             <h1>SMS Report for: "<?php echo htmlspecialchars($campaign['sender_id']); ?>"</h1>
@@ -95,6 +95,6 @@ $statuses_result = $stmt_statuses->get_result();
             options: { responsive: true, plugins: { title: { display: true, text: 'Delivery Status Breakdown' } } }
         });
     </script>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
 </body>
 </html>

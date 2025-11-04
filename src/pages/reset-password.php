@@ -63,8 +63,8 @@ if ($token_valid && $_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Reset Password</title>
-    <link rel="stylesheet" href="css/public_style.css">
-    <link rel="stylesheet" href="css/auth_style.css">
+    <link rel="stylesheet" href="/css/public_style.css">
+    <link rel="stylesheet" href="/css/auth_style.css">
 </head>
 <body>
     <div class="auth-container">

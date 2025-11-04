@@ -10,7 +10,7 @@ $features_result = $mysqli->query("SELECT icon, title, description FROM cms_feat
     <link rel="stylesheet" href="/public/css/public_style.css">
 </head>
 <body>
-    <?php include APP_ROOT . '/public/includes/site_header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/site_header.php'; ?>
 
     <header class="page-header">
         <div class="container">
@@ -33,6 +33,6 @@ $features_result = $mysqli->query("SELECT icon, title, description FROM cms_feat
         </div>
     </section>
 
-    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/site_footer.php'; ?>
 </body>
 </html>

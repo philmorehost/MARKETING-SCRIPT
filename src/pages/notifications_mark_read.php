@@ -2,7 +2,7 @@
 // --- src/pages/notifications_mark_read.php ---
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /public/login');
+    header('Location: /login');
     exit;
 }
 $team_id = $_SESSION['team_id'];
@@ -13,5 +13,5 @@ $stmt->bind_param('i', $team_id);
 $stmt->execute();
 
 // Redirect back to the notifications page (or wherever is appropriate)
-header('Location: /public/notifications');
+header('Location: /notifications');
 exit;

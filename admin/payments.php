@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ../public/login.php');
+    header('Location: /login.php');
     exit;
 }
 
@@ -82,7 +82,7 @@ $pending_payments_result = $mysqli->query("SELECT mp.*, u.email FROM manual_paym
 <head>
     <meta charset="UTF-8">
     <title>Manual Payment Verification</title>
-    <link rel="stylesheet" href="../public/css/admin_style.css">
+    <link rel="stylesheet" href="/css/admin_style.css">
 </head>
 <body>
     <?php include APP_ROOT . '/admin/includes/header.php'; ?>
@@ -109,7 +109,7 @@ $pending_payments_result = $mysqli->query("SELECT mp.*, u.email FROM manual_paym
                     <tr>
                         <td><?php echo htmlspecialchars($payment['email']); ?></td>
                         <td><?php echo htmlspecialchars($payment['credit_package_name']); ?> ($<?php echo $payment['amount']; ?>)</td>
-                        <td><a href="../public/<?php echo htmlspecialchars($payment['proof_path']); ?>" target="_blank">View Proof</a></td>
+                        <td><a href="/<?php echo htmlspecialchars($payment['proof_path']); ?>" target="_blank">View Proof</a></td>
                         <td><?php echo $payment['created_at']; ?></td>
                         <td>
                             <form action="" method="post" style="display:inline;">

@@ -8,14 +8,14 @@ $privacy_policy = get_setting('privacy_policy', $mysqli, 'Privacy policy not yet
 <head>
     <meta charset="UTF-8">
     <title>Privacy Policy</title>
-    <link rel="stylesheet" href="css/public_style.css">
+    <link rel="stylesheet" href="/css/public_style.css">
 </head>
 <body>
-    <?php include APP_ROOT . '/public/includes/site_header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/site_header.php'; ?>
     <main class="page-content">
         <h1>Privacy Policy</h1>
         <div><?php echo nl2br(htmlspecialchars($privacy_policy)); ?></div>
     </main>
-    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/site_footer.php'; ?>
 </body>
 </html>

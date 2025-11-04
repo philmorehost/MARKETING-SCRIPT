@@ -1,13 +1,13 @@
 <?php
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /public/login');
+    header('Location: /login');
     exit;
 }
 $user_id = $_SESSION['user_id'];
 $team_id = $_SESSION['team_id'];
 $automation_id = (int)($_GET['id'] ?? 0);
 if ($automation_id === 0) {
-    header('Location: /public/automations');
+    header('Location: /automations');
     exit;
 }
 $message = '';
@@ -17,7 +17,7 @@ $stmt = $mysqli->prepare("SELECT * FROM automations WHERE id = ? AND team_id = ?
 $stmt->bind_param('ii', $automation_id, $team_id);
 $stmt->execute();
 $automation = $stmt->get_result()->fetch_assoc();
-if (!$automation) { header('Location: /public/automations'); exit; }
+if (!$automation) { header('Location: /automations'); exit; }
 
 // Fetch email campaigns to use as templates
 $campaigns_result = $mysqli->prepare("SELECT id, subject FROM campaigns WHERE team_id = ? AND status != 'sent' ORDER BY created_at DESC"); // Only use drafts/templates
@@ -71,9 +71,9 @@ $steps = $steps_result->get_result();
 <html lang="en">
 <head><title>Edit Automation</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <a href="/public/automations" class="back-link">&larr; Back to Automations</a>
             <h1><?php echo htmlspecialchars($automation['name']); ?></h1>
@@ -141,6 +141,6 @@ $steps = $steps_result->get_result();
             </div>
         </main>
     </div>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
 </body>
 </html>

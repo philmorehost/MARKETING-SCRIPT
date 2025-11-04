@@ -1,6 +1,16 @@
 <?php
 // A very simple front controller
 define('APP_ROOT', dirname(__DIR__));
+
+// Installer check
+if (!file_exists(APP_ROOT . '/config/db.php')) {
+    // Redirect to the installer with an explicit trailing slash.
+    // This prevents a potential secondary redirect by the server,
+    // which can cause issues with automated testing tools.
+    header('Location: /install/');
+    exit;
+}
+
 session_start();
 require_once APP_ROOT . '/config/db.php';
 require_once APP_ROOT . '/vendor/autoload.php';
@@ -14,13 +24,8 @@ if ($mysqli->connect_error) {
 
 // --- Routing ---
 $request_uri = $_SERVER['REQUEST_URI'];
-if (substr($request_uri, 0, 7) === '/public') {
-    $base_path = '/public';
-} else {
-    $base_path = '';
-}
-$route = str_replace($base_path, '', $request_uri);
-$route = strtok($route, '?'); // Remove query string
+$base_path = ''; // No base path since we're in the root
+$route = strtok($request_uri, '?'); // Remove query string
 $route = trim($route, '/');
 $route = $route ?: 'home'; // Default route
 
@@ -68,7 +73,7 @@ $routes = [
 // --- Route Dispatcher ---
 if (array_key_exists($route, $routes)) {
     // Before including, let's define a base URL constant for links/assets
-    define('BASE_URL', '/public');
+    define('BASE_URL', '');
 
     // The actual page files are stored in the src directory to keep them
     // outside of the web root for better security.

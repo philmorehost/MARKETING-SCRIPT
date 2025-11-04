@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /public/login');
+    header('Location: /login');
     exit;
 }
 $user_id = $_SESSION['user_id'];
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_page'])) {
 
                 $image_path = null;
                 if ($image && $image['error'] === UPLOAD_ERR_OK) {
-                    $upload_dir = APP_ROOT . '/public/uploads/landing_pages/';
+                    $upload_dir = APP_ROOT . '/public_html/uploads/landing_pages/';
                     if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
                     $filename = uniqid('lp_', true) . '.' . pathinfo($image['name'], PATHINFO_EXTENSION);
                     if (move_uploaded_file($image['tmp_name'], $upload_dir . $filename)) {
@@ -80,9 +80,9 @@ $pages = $pages_result->get_result();
 <html lang="en">
 <head><title>Landing Page Builder</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Landing Page Builder</h1>
             <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
@@ -132,6 +132,6 @@ $pages = $pages_result->get_result();
             </div>
         </main>
     </div>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
 </body>
 </html>

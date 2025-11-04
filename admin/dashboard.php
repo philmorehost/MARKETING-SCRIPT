@@ -1,7 +1,7 @@
 <?php
 // Security check: only admins can access
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: /public/login');
+    header('Location: /login');
     exit;
 }
 

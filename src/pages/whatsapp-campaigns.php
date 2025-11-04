@@ -3,7 +3,7 @@ require_once '../config/db.php';
 require_once '../src/lib/functions.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /public/login');
+    header('Location: /login');
     exit;
 }
 $user_id = $_SESSION['user_id'];
@@ -88,9 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_whatsapp'])) {
 <html lang="en">
 <head><title>Bulk WhatsApp Service</title><link rel="stylesheet" href="/public/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1>Bulk WhatsApp Service</h1>
             <p class="warning"><strong>Important:</strong> You may only send messages using pre-approved Meta/Gupshup templates. Failure to do so may result in your account being blocked.</p>
@@ -159,6 +159,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_whatsapp'])) {
         listSelect.addEventListener('change', updateCost);
         updateCost(); // Initial calculation
     </script>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
 </body>
 </html>

@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Prevent rewrite rules from applying to the installer directory
+    RewriteCond %{REQUEST_URI} !^/install [NC]
+
+    # Rewrite all other requests to the public_html directory
+    RewriteRule ^$ public_html/ [L]
+    RewriteRule (.*) public_html/$1 [L]
+</IfModule>

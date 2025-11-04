@@ -38,11 +38,11 @@ $replies = $replies_result->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head><title>Viewing Ticket</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
+<head><title>Viewing Ticket</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
 <body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/header.php'; ?>
     <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
+        <aside class="sidebar"><?php include APP_ROOT . '/public_html/includes/sidebar.php'; ?></aside>
         <main class="main-content">
             <h1><?php echo htmlspecialchars($ticket['subject']); ?></h1>
             <p>Status: <?php echo htmlspecialchars($ticket['status']); ?></p>
@@ -66,6 +66,6 @@ $replies = $replies_result->get_result();
             </form>
         </main>
     </div>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <?php include APP_ROOT . '/public_html/includes/footer.php'; ?>
 </body>
 </html>
