@@ -4,6 +4,9 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Define the application root directory.
+define('APP_ROOT', dirname(__DIR__));
+
 // --- Configuration ---
 $required_php_version = '8.1.0';
 $required_extensions = ['mysqli', 'curl', 'gd'];
@@ -38,7 +41,7 @@ define('DB_NAME', '" . addslashes($db_name) . "');
 define('DB_USER', '" . addslashes($db_user) . "');
 define('DB_PASS', '" . addslashes($db_pass) . "');
 ";
-        if (file_put_contents('../config/db.php', $config_content) === false) {
+        if (file_put_contents(APP_ROOT . '/config/db.php', $config_content) === false) {
              $error_message = "Error: Could not write to config/db.php. Please check file permissions.";
         } else {
              // Redirect to step 3
@@ -48,7 +51,7 @@ define('DB_PASS', '" . addslashes($db_pass) . "');
     }
 } elseif ($step === 3 && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // --- Stage 3: Process Admin Account Creation ---
-    require_once '../config/db.php';
+    require_once APP_ROOT . '/config/db.php';
 
     $admin_email = $_POST['admin_email'] ?? '';
     $admin_password = $_POST['admin_password'] ?? '';
@@ -219,7 +222,7 @@ define('DB_PASS', '" . addslashes($db_pass) . "');
             <strong>IMPORTANT:</strong> For security reasons, please DELETE the entire <strong>/install</strong> directory from your server immediately.
         </div>
         <div class="text-center">
-            <a href="../login.php" class="button">Go to Admin Login</a>
+            <a href="/login" class="button">Go to Admin Login</a>
         </div>
         <?php
             // Clean up session
