@@ -1,171 +1,130 @@
 <?php
-// This cron job should be run every minute.
-require_once dirname(__DIR__) . '/config/db.php';
-require_once dirname(__DIR__) . '/lib/functions.php';
+// --- automation_cron.php ---
+// Runs every minute to process automation triggers and steps.
 
-// --- Process New Contacts ---
-// Find contacts who were added to a list with an active automation since their last automation check
-$new_contacts_sql = "
-    SELECT c.id as contact_id, a.id as automation_id
-    FROM contacts c
-    JOIN contact_list_map clm ON c.id = clm.contact_id
+define('APP_ROOT', dirname(__DIR__, 2));
+require_once APP_ROOT . '/config/db.php';
+require_once APP_ROOT . '/src/lib/functions.php';
+
+$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+if ($mysqli->connect_error) { die("DB connection error"); }
+
+$price_per_email = (float)get_setting('price_per_email_send', $mysqli, 1);
+
+// --- 1. Process Triggers --- (Refactored in previous step)
+$trigger_sql = "
+    SELECT a.id as automation_id, c.id as contact_id
+    FROM contact_list_map clm
+    JOIN contacts c ON clm.contact_id = c.id
     JOIN automations a ON clm.list_id = a.trigger_list_id
-    WHERE a.status = 'active'
-    AND c.created_at >= NOW() - INTERVAL 1 MINUTE
+    LEFT JOIN automation_queue aq ON a.id = (SELECT s.automation_id FROM automation_steps s WHERE s.id = aq.automation_step_id) AND aq.contact_id = c.id
+    WHERE a.status = 'active' AND c.created_at >= NOW() - INTERVAL 2 MINUTE AND aq.id IS NULL
 ";
-$new_contacts_result = $mysqli->query($new_contacts_sql);
+$new_triggers = $mysqli->query($trigger_sql);
 
-while ($row = $new_contacts_result->fetch_assoc()) {
-    // Find the first step of the automation
-    $first_step_stmt = $mysqli->prepare("SELECT id FROM automation_steps WHERE automation_id = ? ORDER BY id ASC LIMIT 1");
-    $first_step_stmt->bind_param('i', $row['automation_id']);
-    $first_step_stmt->execute();
-    $first_step = $first_step_stmt->get_result()->fetch_assoc();
-
-    if ($first_step) {
-        // Add the contact to the automation queue for the first step
-        $queue_stmt = $mysqli->prepare("INSERT INTO automation_queue (automation_step_id, contact_id, status) VALUES (?, ?, 'pending')");
-        $queue_stmt->bind_param('ii', $first_step['id'], $row['contact_id']);
-        $queue_stmt->execute();
+if ($new_triggers) {
+    $stmt_first_step = $mysqli->prepare("SELECT id FROM automation_steps WHERE automation_id = ? ORDER BY id ASC LIMIT 1");
+    $stmt_insert_queue = $mysqli->prepare("INSERT INTO automation_queue (automation_step_id, contact_id, status, scheduled_at) VALUES (?, ?, 'pending', NOW())");
+    while ($trigger = $new_triggers->fetch_assoc()) {
+        $stmt_first_step->bind_param('i', $trigger['automation_id']);
+        $stmt_first_step->execute();
+        $first_step_res = $stmt_first_step->get_result();
+        if ($first_step_res && $first_step_res->num_rows > 0) {
+            $step_id = $first_step_res->fetch_assoc()['id'];
+            $stmt_insert_queue->bind_param('ii', $step_id, $trigger['contact_id']);
+            $stmt_insert_queue->execute();
+            echo "Contact {$trigger['contact_id']} started automation {$trigger['automation_id']}.\n";
+        }
     }
 }
 
 
-// --- Process Pending Queue Steps ---
-$pending_steps_sql = "
-    SELECT aq.id as queue_id, aq.contact_id, s.type, s.wait_days, s.email_campaign_id_template, a.team_id, a.user_id, a.id as automation_id
-    FROM automation_queue aq
-    JOIN automation_steps s ON aq.automation_step_id = s.id
-    JOIN automations a ON s.automation_id = a.id
-    WHERE aq.status = 'pending' AND a.status = 'active'
-";
-$pending_steps_result = $mysqli->query($pending_steps_sql);
+// --- 2. Process Pending Steps in the Queue ---
+$queue_sql = "SELECT q.id as queue_id, q.automation_step_id, q.contact_id, s.automation_id, s.type, s.wait_days, s.email_campaign_id_template, a.user_id, a.team_id FROM automation_queue q JOIN automation_steps s ON q.automation_step_id = s.id JOIN automations a ON s.automation_id = a.id WHERE q.status = 'pending' AND q.scheduled_at <= NOW()";
+$pending_steps = $mysqli->query($queue_sql);
 
-while ($step_to_process = $pending_steps_result->fetch_assoc()) {
-    if ($step_to_process['type'] === 'wait') {
-        // If the step is a 'wait', update its status and set the 'process_at' time
-        $process_at = date('Y-m-d H:i:s', strtotime("+{$step_to_process['wait_days']} days"));
-        $update_queue_stmt = $mysqli->prepare("UPDATE automation_queue SET status = 'waiting', process_at = ? WHERE id = ?");
-        $update_queue_stmt->bind_param('si', $process_at, $step_to_process['queue_id']);
-        $update_queue_stmt->execute();
+if($pending_steps) {
+    while ($step_to_run = $pending_steps->fetch_assoc()) {
+        $queue_id = $step_to_run['queue_id'];
+        $mysqli->query("UPDATE automation_queue SET status = 'processing' WHERE id = {$queue_id}");
 
-    } elseif ($step_to_process['type'] === 'send_email') {
-        $price_per_email = (float)get_setting('price_per_email_send', $mysqli, 1);
-        $team_owner_id_stmt = $mysqli->prepare("SELECT owner_user_id FROM teams WHERE id = ?");
-        $team_owner_id_stmt->bind_param('i', $step_to_process['team_id']);
-        $team_owner_id_stmt->execute();
-        $team_owner_id = $team_owner_id_stmt->get_result()->fetch_assoc()['owner_user_id'];
+        $next_step_id = get_next_step($mysqli, $step_to_run['automation_id'], $step_to_run['automation_step_id']);
 
-        $balance_stmt = $mysqli->prepare("SELECT credit_balance FROM users WHERE id = ?");
-        $balance_stmt->bind_param('i', $team_owner_id);
-        $balance_stmt->execute();
-        $balance = (float)$balance_stmt->get_result()->fetch_assoc()['credit_balance'];
+        if ($step_to_run['type'] === 'wait') {
+             $wait_days = (int)$step_to_run['wait_days'];
+            if ($next_step_id) {
+                $mysqli->query("UPDATE automation_queue SET automation_step_id = {$next_step_id}, status = 'pending', scheduled_at = NOW() + INTERVAL {$wait_days} DAY WHERE id = {$queue_id}");
+            } else {
+                $mysqli->query("DELETE FROM automation_queue WHERE id = {$queue_id}");
+            }
+        } elseif ($step_to_run['type'] === 'send_email') {
+            $contact_email = get_contact_email($mysqli, $step_to_run['contact_id']);
+            $team_owner_id = get_team_owner_id($mysqli, $step_to_run['team_id']);
 
-        if ($balance >= $price_per_email) {
-            $mysqli->begin_transaction();
-            try {
-                // Deduct credits
-                $deduct_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
-                $deduct_stmt->bind_param('di', $price_per_email, $team_owner_id);
-                $deduct_stmt->execute();
+            if ($contact_email && $team_owner_id) {
+                $user_balance = get_user_balance($mysqli, $team_owner_id);
 
-                // Add to campaign_queue
-                $contact_email_stmt = $mysqli->prepare("SELECT email FROM contacts WHERE id = ?");
-                $contact_email_stmt->bind_param('i', $step_to_process['contact_id']);
-                $contact_email_stmt->execute();
-                $contact_email = $contact_email_stmt->get_result()->fetch_assoc()['email'];
+                if ($user_balance >= $price_per_email) {
+                    $mysqli->begin_transaction();
+                    try {
+                        $stmt_deduct = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
+                        $stmt_deduct->bind_param('di', $price_per_email, $team_owner_id);
+                        $stmt_deduct->execute();
 
-                $queue_email_stmt = $mysqli->prepare("INSERT INTO campaign_queue (campaign_id, contact_id, email_address, status) VALUES (?, ?, ?, 'pending')");
-                $queue_email_stmt->bind_param('iis', $step_to_process['email_campaign_id_template'], $step_to_process['contact_id'], $contact_email);
-                $queue_email_stmt->execute();
+                        $stmt_queue_email = $mysqli->prepare("INSERT INTO campaign_queue (campaign_id, contact_id, email_address, status) VALUES (?, ?, ?, 'queued')");
+                        $stmt_queue_email->bind_param('iis', $step_to_run['email_campaign_id_template'], $step_to_run['contact_id'], $contact_email);
+                        $stmt_queue_email->execute();
 
-                // Mark this step as complete
-                $update_queue_stmt = $mysqli->prepare("UPDATE automation_queue SET status = 'completed' WHERE id = ?");
-                $update_queue_stmt->bind_param('i', $step_to_process['queue_id']);
-                $update_queue_stmt->execute();
+                        $mysqli->commit();
+                        echo "Queue {$queue_id}: Email queued for contact {$step_to_run['contact_id']}.\n";
 
-                $mysqli->commit();
-
-                // Find and queue the next step (outside transaction)
-                $next_step_stmt = $mysqli->prepare("SELECT id FROM automation_steps WHERE automation_id = ? AND id > (SELECT automation_step_id FROM automation_queue WHERE id = ? ) ORDER BY id ASC LIMIT 1");
-                $next_step_stmt->bind_param('ii', $step_to_process['automation_id'], $step_to_process['queue_id']);
-                $next_step_stmt->execute();
-                $next_step = $next_step_stmt->get_result()->fetch_assoc();
-                if ($next_step) {
-                    $queue_next_stmt = $mysqli->prepare("INSERT INTO automation_queue (automation_step_id, contact_id, status) VALUES (?, ?, 'pending')");
-                    $queue_next_stmt->bind_param('ii', $next_step['id'], $step_to_process['contact_id']);
-                    $queue_next_stmt->execute();
+                        if ($next_step_id) {
+                             $mysqli->query("UPDATE automation_queue SET automation_step_id = {$next_step_id}, status = 'pending', scheduled_at = NOW() WHERE id = {$queue_id}");
+                        } else {
+                            $mysqli->query("DELETE FROM automation_queue WHERE id = {$queue_id}");
+                        }
+                    } catch (Exception $e) {
+                        $mysqli->rollback();
+                        echo "Queue {$queue_id}: Transaction failed. Error: " . $e->getMessage() . "\n";
+                    }
+                } else {
+                    echo "Queue {$queue_id}: Insufficient credits. Pausing.\n";
+                    $mysqli->query("UPDATE automation_queue SET status = 'paused' WHERE id = {$queue_id}");
                 }
-
-            } catch (Exception $e) {
-                $mysqli->rollback();
             }
         }
-        // If not enough credits, the step remains 'pending' and will be retried.
     }
 }
 
-
-// --- Process Waiting Steps ---
-// Find steps where the 'wait' period is over
-$waiting_steps_sql = "SELECT id, contact_id, automation_step_id FROM automation_queue WHERE status = 'waiting' AND process_at <= NOW()";
-$waiting_steps_result = $mysqli->query($waiting_steps_sql);
-
-while($waiting_step = $waiting_steps_result->fetch_assoc()){
-    // Mark the waiting step as complete
-    $mysqli->query("UPDATE automation_queue SET status = 'completed' WHERE id = {$waiting_step['id']}");
-
-    // Find and queue the next step
-    $automation_id_stmt = $mysqli->prepare("SELECT automation_id FROM automation_steps WHERE id = ?");
-    $automation_id_stmt->bind_param('i', $waiting_step['automation_step_id']);
-    $automation_id_stmt->execute();
-    $automation_id = $automation_id_stmt->get_result()->fetch_assoc()['automation_id'];
-
-    $next_step_stmt = $mysqli->prepare("SELECT id FROM automation_steps WHERE automation_id = ? AND id > ? ORDER BY id ASC LIMIT 1");
-    $next_step_stmt->bind_param('ii', $automation_id, $waiting_step['automation_step_id']);
-    $next_step_stmt->execute();
-    $next_step = $next_step_stmt->get_result()->fetch_assoc();
-    if ($next_step) {
-        $queue_next_stmt = $mysqli->prepare("INSERT INTO automation_queue (automation_step_id, contact_id, status) VALUES (?, ?, 'pending')");
-        $queue_next_stmt->bind_param('ii', $next_step['id'], $waiting_step['contact_id']);
-        $queue_next_stmt->execute();
-    }
+function get_next_step($db, $automation_id, $current_step_id) {
+    // (This function already uses prepared statements)
+    $stmt = $db->prepare("SELECT id FROM automation_steps WHERE automation_id = ? AND id > ? ORDER BY id ASC LIMIT 1");
+    $stmt->bind_param('ii', $automation_id, $current_step_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    return $res->num_rows > 0 ? $res->fetch_assoc()['id'] : null;
 }
-        $next_step_stmt = $mysqli->prepare("SELECT id FROM automation_steps WHERE automation_id = ? AND id > ? ORDER BY id ASC LIMIT 1");
-        $next_step_stmt->bind_param('ii', $step_to_process['automation_id'], $step_to_process['id']);
-        $next_step_stmt->execute();
-        $next_step = $next_step_stmt->get_result()->fetch_assoc();
-        if ($next_step) {
-            $queue_next_stmt = $mysqli->prepare("INSERT INTO automation_queue (automation_step_id, contact_id, status) VALUES (?, ?, 'pending')");
-            $queue_next_stmt->bind_param('ii', $next_step['id'], $step_to_process['contact_id']);
-            $queue_next_stmt->execute();
-        }
-    }
+function get_team_owner_id($db, $team_id) {
+    $stmt = $db->prepare("SELECT owner_user_id FROM teams WHERE id = ?");
+    $stmt->bind_param('i', $team_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    return $res->num_rows > 0 ? $res->fetch_assoc()['owner_user_id'] : null;
+}
+function get_contact_email($db, $contact_id) {
+    $stmt = $db->prepare("SELECT email FROM contacts WHERE id = ? AND email IS NOT NULL");
+    $stmt->bind_param('i', $contact_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    return $res->num_rows > 0 ? $res->fetch_assoc()['email'] : null;
+}
+function get_user_balance($db, $user_id) {
+    $stmt = $db->prepare("SELECT credit_balance FROM users WHERE id = ?");
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    return $res->num_rows > 0 ? (float)$res->fetch_assoc()['credit_balance'] : 0;
 }
 
-
-// --- Process Waiting Steps ---
-// Find steps where the 'wait' period is over
-$waiting_steps_sql = "SELECT id, contact_id, automation_step_id FROM automation_queue WHERE status = 'waiting' AND process_at <= NOW()";
-$waiting_steps_result = $mysqli->query($waiting_steps_sql);
-
-while($waiting_step = $waiting_steps_result->fetch_assoc()){
-    // Mark the waiting step as complete
-    $mysqli->query("UPDATE automation_queue SET status = 'completed' WHERE id = {$waiting_step['id']}");
-
-    // Find and queue the next step
-    $automation_id_stmt = $mysqli->prepare("SELECT automation_id FROM automation_steps WHERE id = ?");
-    $automation_id_stmt->bind_param('i', $waiting_step['automation_step_id']);
-    $automation_id_stmt->execute();
-    $automation_id = $automation_id_stmt->get_result()->fetch_assoc()['automation_id'];
-
-    $next_step_stmt = $mysqli->prepare("SELECT id FROM automation_steps WHERE automation_id = ? AND id > ? ORDER BY id ASC LIMIT 1");
-    $next_step_stmt->bind_param('ii', $automation_id, $waiting_step['automation_step_id']);
-    $next_step_stmt->execute();
-    $next_step = $next_step_stmt->get_result()->fetch_assoc();
-    if ($next_step) {
-        $queue_next_stmt = $mysqli->prepare("INSERT INTO automation_queue (automation_step_id, contact_id, status) VALUES (?, ?, 'pending')");
-        $queue_next_stmt->bind_param('ii', $next_step['id'], $waiting_step['contact_id']);
-        $queue_next_stmt->execute();
-    }
-}
+echo "Automation cron finished.\n";
+$mysqli->close();

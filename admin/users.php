@@ -38,25 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute();
                 $message = "Credits updated.";
                 break;
-            case 'login_as':
-                // Store current admin session
-                $_SESSION['admin_user_id'] = $_SESSION['user_id'];
-                $_SESSION['admin_user_role'] = $_SESSION['user_role'];
-
-                // Log in as the selected user
-                $stmt = $mysqli->prepare("SELECT id, name, email, role, team_id FROM users WHERE id = ?");
-                $stmt->bind_param('i', $user_id);
-                $stmt->execute();
-                $user_to_login = $stmt->get_result()->fetch_assoc();
-
-                $_SESSION['user_id'] = $user_to_login['id'];
-                $_SESSION['user_name'] = $user_to_login['name'];
-                $_SESSION['user_email'] = $user_to_login['email'];
-                $_SESSION['user_role'] = $user_to_login['role'];
-                $_SESSION['team_id'] = $user_to_login['team_id'];
-
-                header('Location: /public/dashboard.php');
-                exit;
         }
     }
 }
@@ -127,7 +108,6 @@ $users_result = $stmt->get_result();
                                 <?php else: ?>
                                 <button type="submit" name="action" value="suspend">Suspend</button>
                                 <?php endif; ?>
-                                <button type="submit" name="action" value="login_as">Login As</button>
                                 <button type="submit" name="action" value="delete" onclick="return confirm('Are you sure?')">Delete</button>
                             </form>
                             <!-- Credit Form -->

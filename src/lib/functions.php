@@ -49,12 +49,3 @@ function update_content($key, $value, $db) {
     $stmt->bind_param('sss', $key, $value, $value);
     return $stmt->execute();
 }
-
-/**
- * Creates a new notification for a user/team.
- */
-function create_notification($db, $user_id, $team_id, $message, $link = '') {
-    $stmt = $db->prepare("INSERT INTO notifications (user_id, team_id, message, link) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param('iiss', $user_id, $team_id, $message, $link);
-    return $stmt->execute();
-}

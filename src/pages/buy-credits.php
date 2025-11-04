@@ -28,8 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['manual_payment'])) {
 
             if (move_uploaded_file($pop_file['tmp_name'], $filepath)) {
                 $db_filepath = '/uploads/pop/' . $filename;
-                $stmt = $mysqli->prepare("INSERT INTO manual_payments (user_id, team_id, credit_package_id, credit_package_name, amount, proof_path) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt->bind_param('iiisds', $user_id, $_SESSION['team_id'], $package_id, $package['name'], $package['price'], $db_filepath);
+                $stmt = $mysqli->prepare("INSERT INTO manual_payments (user_id, credit_package_id, credit_package_name, amount, proof_path) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param('iisds', $user_id, $package_id, $package['name'], $package['price'], $db_filepath);
                 if ($stmt->execute()) {
                     $message = "Proof of payment uploaded successfully. Please wait for an admin to verify it.";
                 } else {
@@ -48,10 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['manual_payment'])) {
 
 // Fetch credit packages
 $packages_result = $mysqli->query("SELECT id, name, description, price, credits, is_popular FROM credit_packages ORDER BY price");
-
-require_once APP_ROOT . '/src/lib/functions.php';
-$bank_details = get_setting('bank_details', $mysqli, 'Bank: N/A | Account: N/A | Name: N/A');
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -86,9 +82,7 @@ $bank_details = get_setting('bank_details', $mysqli, 'Bank: N/A | Account: N/A |
             <div class="manual-payment">
                 <h2>Manual Bank Transfer</h2>
                 <p>Please make a payment to the account details below and upload your proof of payment (POP).</p>
-                <div class="bank-details">
-                    <?php echo nl2br(htmlspecialchars($bank_details)); ?>
-                </div>
+                <p><strong>Bank:</strong> First Bank | <strong>Account:</strong> 1234567890 | <strong>Name:</strong> Your Company Inc.</p>
                 <form action="/public/buy-credits" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="manual_payment" value="1">
                     <div class="form-group">

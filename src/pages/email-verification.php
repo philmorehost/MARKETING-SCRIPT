@@ -13,27 +13,8 @@ $price_per_verification = (float)get_setting('price_per_verification', $mysqli, 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_emails'])) {
     $job_name = trim($_POST['job_name'] ?? 'Verification Job');
     $emails_raw = trim($_POST['emails'] ?? '');
-    $emails = [];
-
-    // Handle pasted emails
-    if (!empty($emails_raw)) {
-        $emails = array_merge($emails, preg_split('/[\s,]+/', $emails_raw));
-    }
-
-    // Handle CSV upload
-    if (isset($_FILES['csv_file']) && $_FILES['csv_file']['error'] === UPLOAD_ERR_OK) {
-        $file = $_FILES['csv_file']['tmp_name'];
-        $handle = fopen($file, "r");
-        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-            if (isset($data[0])) { // Assuming email is in the first column
-                $emails[] = $data[0];
-            }
-        }
-        fclose($handle);
-    }
-
-    $emails = array_unique(array_filter(array_map('trim', $emails), function($email) {
-        return filter_var($email, FILTER_VALIDATE_EMAIL);
+    $emails = array_unique(array_filter(preg_split('/[\s,]+/', $emails_raw), function($email) {
+        return filter_var(trim($email), FILTER_VALIDATE_EMAIL);
     }));
     $email_count = count($emails);
 
@@ -99,8 +80,6 @@ $jobs = $jobs_result->get_result();
                     <input type="hidden" name="verify_emails" value="1">
                     <div class="form-group"><label for="job_name">Job Name</label><input type="text" id="job_name" name="job_name" required></div>
                     <div class="form-group"><label for="emails">Paste Emails</label><textarea id="emails" name="emails" rows="10" placeholder="Paste emails here, one per line or separated by commas."></textarea></div>
-                    <p><strong>OR</strong></p>
-                     <div class="form-group"><label for="csv_file">Upload CSV</label><input type="file" id="csv_file" name="csv_file" accept=".csv"></div>
                     <p>Cost per email: <strong><?php echo $price_per_verification; ?> credits</strong></p>
                     <div id="cost-estimator">Emails detected: 0 | Estimated Cost: 0.00 credits</div>
                     <button type="submit">Queue Verification Job</button>
@@ -110,7 +89,7 @@ $jobs = $jobs_result->get_result();
             <h2>Your Verification Jobs</h2>
             <div class="table-container">
                 <table>
-                    <thead><tr><th>Job Name</th><th>Emails</th><th>Cost</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Job Name</th><th>Emails</th><th>Cost</th><th>Status</th><th>Date</th></tr></thead>
                     <tbody>
                     <?php while($job = $jobs->fetch_assoc()): ?>
                     <tr>
@@ -119,11 +98,6 @@ $jobs = $jobs_result->get_result();
                         <td><?php echo number_format($job['cost_in_credits'], 4); ?></td>
                         <td><?php echo htmlspecialchars($job['status']); ?></td>
                         <td><?php echo $job['created_at']; ?></td>
-                        <td>
-                            <?php if ($job['status'] === 'Completed'): ?>
-                            <a href="/public/download-verification-results?job_id=<?php echo $job['id']; ?>" class="button-secondary">Download</a>
-                            <?php endif; ?>
-                        </td>
                     </tr>
                     <?php endwhile; ?>
                     </tbody>

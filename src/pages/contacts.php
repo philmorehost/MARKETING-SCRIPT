@@ -35,20 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_list'])) {
     $message = "List deleted.";
 }
 
-// Handle Rename List
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['rename_list'])) {
-    $list_id = (int)$_POST['list_id'];
-    $new_name = trim($_POST['new_list_name'] ?? '');
-    if (!empty($new_name)) {
-        $stmt = $mysqli->prepare("UPDATE contact_lists SET list_name = ? WHERE id = ? AND team_id = ?");
-        $stmt->bind_param('sii', $new_name, $list_id, $team_id);
-        $stmt->execute();
-        $message = "List renamed successfully.";
-    } else {
-        $message = "New list name cannot be empty.";
-    }
-}
-
 
 // Fetch all contact lists for the team
 $lists_result = $mysqli->prepare("SELECT id, list_name, (SELECT COUNT(*) FROM contact_list_map WHERE list_id = contact_lists.id) as contact_count FROM contact_lists WHERE team_id = ? ORDER BY id DESC");
@@ -99,11 +85,10 @@ $lists = $lists_result->get_result();
                         <td><a href="view-list.php?id=<?php echo $list['id']; ?>"><?php echo htmlspecialchars($list['list_name']); ?></a></td>
                         <td><?php echo $list['contact_count']; ?></td>
                         <td>
-                             <a href="view-list.php?id=<?php echo $list['id']; ?>" class="button-primary">View/Manage</a>
-                             <button class="button-secondary" onclick="openRenameModal(<?php echo $list['id']; ?>, '<?php echo htmlspecialchars($list['list_name'], ENT_QUOTES); ?>')">Rename</button>
+                             <a href="view-list.php?id=<?php echo $list['id']; ?>">View/Import</a>
                              <form action="/public/contacts" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this list?');">
                                 <input type="hidden" name="list_id" value="<?php echo $list['id']; ?>">
-                                <button type="submit" name="delete_list" class="button-danger">Delete</button>
+                                <button type="submit" name="delete_list">Delete</button>
                              </form>
                         </td>
                     </tr>
@@ -113,36 +98,6 @@ $lists = $lists_result->get_result();
 
         </main>
     </div>
-
-    <!-- Rename Modal -->
-    <div id="rename-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-            <h2>Rename List</h2>
-            <form action="/public/contacts" method="post">
-                <input type="hidden" name="rename_list" value="1">
-                <input type="hidden" id="rename-list-id" name="list_id">
-                <div class="form-group">
-                    <label for="new-list-name">New List Name</label>
-                    <input type="text" id="new-list-name" name="new_list_name" required>
-                </div>
-                <button type="submit">Save Changes</button>
-                <button type="button" onclick="closeRenameModal()">Cancel</button>
-            </form>
-        </div>
-    </div>
-
     <?php include APP_ROOT . '/public/includes/footer.php'; ?>
-
-    <script>
-    function openRenameModal(listId, listName) {
-        document.getElementById('rename-list-id').value = listId;
-        document.getElementById('new-list-name').value = listName;
-        document.getElementById('rename-modal').style.display = 'flex';
-    }
-
-    function closeRenameModal() {
-        document.getElementById('rename-modal').style.display = 'none';
-    }
-    </script>
 </body>
 </html>
