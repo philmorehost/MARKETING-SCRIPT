@@ -13,15 +13,13 @@ if ($emails_to_verify->num_rows > 0) {
     $update_stmt = $mysqli->prepare("UPDATE verification_queue SET status = ?, details = ? WHERE id = ?");
 
     while ($email = $emails_to_verify->fetch_assoc()) {
-        // Mock verification logic
-        $status = 'valid';
-        $details = 'Mock verification successful.';
-        if (strpos($email['email_address'], 'invalid') !== false) {
-            $status = 'invalid';
-            $details = 'Domain does not exist.';
-        } elseif (strpos($email['email_address'], 'risky') !== false) {
-            $status = 'risky';
-            $details = 'Mailbox is a catch-all.';
+        $domain = substr(strrchr($email['email_address'], "@"), 1);
+        $status = 'invalid';
+        $details = 'No MX record found.';
+
+        if (checkdnsrr($domain, 'MX')) {
+            $status = 'valid';
+            $details = 'MX record found.';
         }
 
         $update_stmt->bind_param('ssi', $status, $details, $email['id']);

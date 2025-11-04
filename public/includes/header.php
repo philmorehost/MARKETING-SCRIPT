@@ -20,6 +20,12 @@ $stmt_notif->execute();
 $notifications = $stmt_notif->get_result();
 $unread_count = $notifications->num_rows;
 ?>
+<?php if (isset($_SESSION['admin_user_id'])): ?>
+<div class="admin-login-banner">
+    You are currently logged in as <?php echo htmlspecialchars($_SESSION['user_name']); ?>.
+    <a href="/public/return-to-admin">Return to your admin account.</a>
+</div>
+<?php endif; ?>
 <header class="user-header">
     <div class="logo"><a href="/public/dashboard">My Dashboard</a></div>
     <div class="header-right">

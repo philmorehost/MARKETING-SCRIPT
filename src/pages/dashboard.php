@@ -23,24 +23,42 @@ $stmt_team->execute();
 $team_result = $stmt_team->get_result()->fetch_assoc();
 $team_id = $team_result['team_id'];
 
-// Function to fetch a single count
-function get_count($mysqli, $sql, $team_id) {
-    $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param('i', $team_id);
-    $stmt->execute();
-    return $stmt->get_result()->fetch_assoc()['c'];
+// Fetch real stats in a single query for efficiency
+$stats_sql = "
+    SELECT 'total_contacts' as stat, COUNT(*) as value FROM contacts WHERE team_id = ?
+    UNION ALL
+    SELECT 'emails_verified' as stat, COUNT(*) as value FROM verification_queue vq JOIN verification_jobs vj ON vq.job_id = vj.id WHERE vj.team_id = ? AND vq.status = 'valid'
+    UNION ALL
+    SELECT 'emails_sent' as stat, COUNT(*) as value FROM campaign_queue cq JOIN campaigns cmp ON cq.campaign_id = cmp.id WHERE cmp.team_id = ? AND cq.status = 'sent'
+    UNION ALL
+    SELECT 'sms_sent' as stat, COUNT(*) as value FROM sms_queue sq JOIN sms_campaigns sc ON sq.sms_campaign_id = sc.id WHERE sc.team_id = ? AND sq.status = 'sent'
+    UNION ALL
+    SELECT 'whatsapps_sent' as stat, COUNT(*) as value FROM whatsapp_queue wq JOIN whatsapp_campaigns wc ON wq.campaign_id = wc.id WHERE wc.team_id = ? AND wq.status = 'sent'
+    UNION ALL
+    SELECT 'active_landing_pages' as stat, COUNT(*) as value FROM landing_pages WHERE team_id = ? AND status = 'published'
+    UNION ALL
+    SELECT 'social_posts_sent' as stat, COUNT(*) as value FROM social_posts_queue WHERE team_id = ? AND status = 'sent'
+    UNION ALL
+    SELECT 'qr_codes_generated' as stat, COUNT(*) as value FROM qr_codes WHERE team_id = ?
+";
+$stmt_stats = $mysqli->prepare($stats_sql);
+$stmt_stats->bind_param('iiiiiiii', $team_id, $team_id, $team_id, $team_id, $team_id, $team_id, $team_id, $team_id);
+$stmt_stats->execute();
+$stats_result = $stmt_stats->get_result();
+$stats_raw = [];
+while($row = $stats_result->fetch_assoc()) {
+    $stats_raw[$row['stat']] = $row['value'];
 }
 
-// Fetch real stats using prepared statements
 $stats = [
-    'total_contacts' => get_count($mysqli, "SELECT COUNT(*) as c FROM contacts WHERE team_id = ?", $team_id),
-    'emails_verified' => get_count($mysqli, "SELECT COUNT(*) as c FROM verification_queue vq JOIN verification_jobs vj ON vq.job_id = vj.id WHERE vj.team_id = ? AND vq.status = 'valid'", $team_id),
-    'emails_sent' => get_count($mysqli, "SELECT COUNT(*) as c FROM campaign_queue cq JOIN campaigns cmp ON cq.campaign_id = cmp.id WHERE cmp.team_id = ? AND cq.status = 'sent'", $team_id),
-    'sms_sent' => get_count($mysqli, "SELECT COUNT(*) as c FROM sms_queue sq JOIN sms_campaigns sc ON sq.sms_campaign_id = sc.id WHERE sc.team_id = ? AND sq.status = 'sent'", $team_id),
-    'whatsapps_sent' => get_count($mysqli, "SELECT COUNT(*) as c FROM whatsapp_queue wq JOIN whatsapp_campaigns wc ON wq.campaign_id = wc.id WHERE wc.team_id = ? AND wq.status = 'sent'", $team_id),
-    'active_landing_pages' => get_count($mysqli, "SELECT COUNT(*) as c FROM landing_pages WHERE team_id = ? AND status = 'published'", $team_id),
-    'social_posts_sent' => get_count($mysqli, "SELECT COUNT(*) as c FROM social_posts_queue WHERE team_id = ? AND status = 'sent'", $team_id),
-    'qr_codes_generated' => get_count($mysqli, "SELECT COUNT(*) as c FROM qr_codes WHERE team_id = ?", $team_id),
+    'total_contacts' => $stats_raw['total_contacts'] ?? 0,
+    'emails_verified' => $stats_raw['emails_verified'] ?? 0,
+    'emails_sent' => $stats_raw['emails_sent'] ?? 0,
+    'sms_sent' => $stats_raw['sms_sent'] ?? 0,
+    'whatsapps_sent' => $stats_raw['whatsapps_sent'] ?? 0,
+    'active_landing_pages' => $stats_raw['active_landing_pages'] ?? 0,
+    'social_posts_sent' => $stats_raw['social_posts_sent'] ?? 0,
+    'qr_codes_generated' => $stats_raw['qr_codes_generated'] ?? 0,
 ];
 
 // Fetch recent verification jobs

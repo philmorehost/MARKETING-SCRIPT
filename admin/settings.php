@@ -71,8 +71,45 @@ function get_setting($key, $default = '') {
                 <input type="number" step="0.0001" name="settings[price_per_sms_page]" value="<?php echo htmlspecialchars(get_setting('price_per_sms_page', '5')); ?>">
                  <label>Cost per WhatsApp Message:</label>
                 <input type="number" step="0.0001" name="settings[price_per_whatsapp]" value="<?php echo htmlspecialchars(get_setting('price_per_whatsapp', '10')); ?>">
+                <label>Cost to Publish Landing Page:</label>
+                <input type="number" step="0.0001" name="settings[price_landing_page_publish]" value="<?php echo htmlspecialchars(get_setting('price_landing_page_publish', '50')); ?>">
+                <label>Cost per 1000 AI Content Words:</label>
+                <input type="number" step="0.0001" name="settings[price_per_ai_word]" value="<?php echo htmlspecialchars(get_setting('price_per_ai_word', '10')); ?>">
+                <label>Cost per Social Post:</label>
+                <input type="number" step="0.0001" name="settings[price_per_social_post]" value="<?php echo htmlspecialchars(get_setting('price_per_social_post', '2')); ?>">
+                 <label>Cost per QR Code:</label>
+                <input type="number" step="0.0001" name="settings[price_per_qr_code]" value="<?php echo htmlspecialchars(get_setting('price_per_qr_code', '1')); ?>">
 
-                <!-- Add other settings as needed from the brief -->
+                <h2>API Settings</h2>
+                <h3>Social & API Logins</h3>
+                <label>Google Client ID:</label><input type="text" name="settings[google_client_id]" value="<?php echo htmlspecialchars(get_setting('google_client_id')); ?>">
+                <label>Google Client Secret:</label><input type="text" name="settings[google_client_secret]" value="<?php echo htmlspecialchars(get_setting('google_client_secret')); ?>">
+
+                <h3>SMS API</h3>
+                <label>PhilmoreSMS API Key:</label><input type="text" name="settings[philmorsms_api_key]" value="<?php echo htmlspecialchars(get_setting('philmorsms_api_key')); ?>">
+                <label>PhilmoreSMS Sender ID:</label><input type="text" name="settings[philmorsms_sender_id]" value="<?php echo htmlspecialchars(get_setting('philmorsms_sender_id')); ?>">
+
+                <h3>WhatsApp API</h3>
+                <label>Provider:</label>
+                <select name="settings[whatsapp_provider]">
+                    <option value="none" <?php if(get_setting('whatsapp_provider') == 'none') echo 'selected'; ?>>None</option>
+                    <option value="gupshup" <?php if(get_setting('whatsapp_provider') == 'gupshup') echo 'selected'; ?>>Gupshup</option>
+                    <option value="meta" <?php if(get_setting('whatsapp_provider') == 'meta') echo 'selected'; ?>>Meta (Official)</option>
+                </select>
+                <label>Gupshup API Key:</label><input type="text" name="settings[gupshup_api_key]" value="<?php echo htmlspecialchars(get_setting('gupshup_api_key')); ?>">
+                <label>Gupshup Source Number:</label><input type="text" name="settings[gupshup_source_number]" value="<?php echo htmlspecialchars(get_setting('gupshup_source_number')); ?>">
+                <label>Meta API Token:</label><input type="text" name="settings[meta_api_token]" value="<?php echo htmlspecialchars(get_setting('meta_api_token')); ?>">
+                <label>Meta Phone Number ID:</label><input type="text" name="settings[meta_phone_number_id]" value="<?php echo htmlspecialchars(get_setting('meta_phone_number_id')); ?>">
+                <label>Meta WABA ID:</label><input type="text" name="settings[meta_waba_id]" value="<?php echo htmlspecialchars(get_setting('meta_waba_id')); ?>">
+
+                <h3>AI API</h3>
+                 <label>Provider:</label>
+                <select name="settings[ai_provider]">
+                    <option value="none" <?php if(get_setting('ai_provider') == 'none') echo 'selected'; ?>>None</option>
+                    <option value="google_gemini" <?php if(get_setting('ai_provider') == 'google_gemini') echo 'selected'; ?>>Google Gemini</option>
+                    <option value="openai" <?php if(get_setting('ai_provider') == 'openai') echo 'selected'; ?>>OpenAI</option>
+                </select>
+                <label>API Key:</label><input type="text" name="settings[ai_provider_key]" value="<?php echo htmlspecialchars(get_setting('ai_provider_key')); ?>">
 
                 <br><br>
                 <button type="submit">Save Settings</button>
