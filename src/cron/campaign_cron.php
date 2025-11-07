@@ -1,95 +1,87 @@
 <?php
-// --- campaign_cron.php ---
-// This script should be executed by a cron job every minute.
+// src/cron/campaign_cron.php
+// This script should be run by a cron job every minute.
 
-define('APP_ROOT', dirname(__DIR__, 2));
-require_once APP_ROOT . '/config/db.php';
-require_once APP_ROOT . '/src/lib/functions.php';
-require_once APP_ROOT . '/vendor/autoload.php';
+if (PHP_SAPI !== 'cli') {
+    die('This script can only be run from the command line.');
+}
+
+require_once dirname(__DIR__) . '/config/db.php';
+require_once dirname(__DIR__) . '/src/lib/functions.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-if ($mysqli->connect_error) { die("DB connection error"); }
-
-// --- Settings ---
-$max_emails_per_hour = (int)get_setting('max_emails_per_hour', $mysqli, 300);
-$batch_limit = 50; // Emails to process per cron run
-
-// --- Throttling Logic ---
-$stmt = $mysqli->prepare("SELECT COUNT(*) as total FROM hourly_email_log WHERE sent_at > (NOW() - INTERVAL 1 HOUR)");
-$stmt->execute();
-$sent_this_hour = $stmt->get_result()->fetch_assoc()['total'];
-
-if ($sent_this_hour >= $max_emails_per_hour) {
-    die("Hourly email limit of {$max_emails_per_hour} reached.\n");
+if ($mysqli->connect_error) {
+    echo "Database connection failed: " . $mysqli->connect_error . "\n";
+    exit(1);
 }
 
-$emails_to_send = min($batch_limit, $max_emails_per_hour - $sent_this_hour);
+echo "Running Email Campaign Cron Job...\n";
 
-// --- Main Logic ---
-$stmt = $mysqli->prepare(
-    "SELECT q.id, q.email_address, c.subject, c.html_content, q.campaign_id
-     FROM campaign_queue q
-     JOIN campaigns c ON q.campaign_id = c.id
-     WHERE q.status = 'queued'
-     ORDER BY q.id ASC
-     LIMIT ?"
-);
-$stmt->bind_param('i', $emails_to_send);
+// --- Fetch a batch of emails to send ---
+$batch_size = get_setting('max_emails_per_hour', 100) / 60; // Per-minute batch size
+$stmt = $mysqli->prepare("
+    SELECT cq.id, cq.email_address, c.subject, c.html_content
+    FROM campaign_queue cq
+    JOIN campaigns c ON cq.campaign_id = c.id
+    WHERE cq.status = 'queued' AND c.status IN ('queued', 'sending')
+    ORDER BY c.created_at ASC
+    LIMIT ?
+");
+$stmt->bind_param("i", $batch_size);
 $stmt->execute();
-$queue_items = $stmt->get_result();
+$result = $stmt->get_result();
+$emails_to_send = $result->fetch_all(MYSQLI_ASSOC);
 
-if ($queue_items->num_rows === 0) {
-    echo "No pending emails to send.\n";
-    exit;
+if (empty($emails_to_send)) {
+    echo "No emails in queue. Exiting.\n";
+    exit(0);
 }
 
-$update_stmt = $mysqli->prepare("UPDATE campaign_queue SET status = ?, api_message_id = ? WHERE id = ?");
+echo "Found " . count($emails_to_send) . " emails to send.\n";
 
-while ($item = $queue_items->fetch_assoc()) {
-    $queue_id = $item['id'];
+$mail = new PHPMailer(true);
+try {
+    // --- Configure PHPMailer ---
+    $mail->isSMTP();
+    $mail->Host = get_setting('smtp_host', 'localhost');
+    $mail->SMTPAuth = false;
+    $mail->Port = get_setting('smtp_port', 1025);
+    $mail->setFrom(get_setting('site_email', 'noreply@example.com'), get_setting('site_name'));
 
-    // Mark as 'sending' first
-    $mysqli->query("UPDATE campaign_queue SET status = 'sending' WHERE id = $queue_id");
+    $update_stmt = $mysqli->prepare("UPDATE campaign_queue SET status = ?, api_message_id = ? WHERE id = ?");
 
-    $mail = new PHPMailer(true);
-    try {
-        $mail->isSMTP();
-        $mail->Host = get_setting('smtp_host', $mysqli);
-        $mail->SMTPAuth = true;
-        $mail->Username = get_setting('smtp_user', $mysqli);
-        $mail->Password = get_setting('smtp_pass', $mysqli);
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = 587;
+    foreach ($emails_to_send as $email_item) {
+        try {
+            $mail->clearAddresses();
+            $mail->addAddress($email_item['email_address']);
+            $mail->Subject = $email_item['subject'];
+            $mail->Body    = $email_item['html_content'];
+            $mail->isHTML(true);
 
-        $mail->setFrom('no-reply@yourdomain.com', get_setting('site_name', $mysqli));
-        $mail->addAddress($item['email_address']);
-        $mail->isHTML(true);
-        $mail->Subject = $item['subject'];
-        $mail->Body    = $item['html_content'];
+            $mail->send();
 
-        if ($mail->send()) {
             $status = 'sent';
-            $message_id = trim($mail->getLastMessageID(), '<>');
+            $message_id = $mail->getLastMessageID();
+            echo "  - Sent to {$email_item['email_address']}\n";
 
-            $update_stmt->bind_param('ssi', $status, $message_id, $queue_id);
-            $update_stmt->execute();
-
-            $mysqli->query("INSERT INTO hourly_email_log (campaign_id) VALUES ({$item['campaign_id']})");
-            echo "Successfully sent email to {$item['email_address']} (MsgID: {$message_id})\n";
-        } else {
-            throw new Exception($mail->ErrorInfo);
+        } catch (Exception $e) {
+            $status = 'failed';
+            $message_id = $mail->ErrorInfo;
+            echo "  - FAILED to send to {$email_item['email_address']}: {$mail->ErrorInfo}\n";
         }
-    } catch (Exception $e) {
-        $status = 'failed';
-        $message_id = null;
-        $update_stmt->bind_param('ssi', $status, $message_id, $queue_id);
+
+        $update_stmt->bind_param("ssi", $status, $message_id, $email_item['id']);
         $update_stmt->execute();
-        echo "Failed to send email to {$item['email_address']}. Error: {$e->getMessage()}\n";
     }
+
+} catch (Exception $e) {
+    echo "Mailer configuration error: {$mail->ErrorInfo}\n";
 }
 
-echo "Campaign cron run finished.\n";
+echo "Batch processing complete.\n";
 $mysqli->close();
+exit(0);

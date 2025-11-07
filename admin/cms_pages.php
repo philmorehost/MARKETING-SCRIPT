@@ -1,59 +1,67 @@
 <?php
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: /login'); exit;
+$page_title = "CMS: Simple Pages";
+require_once 'auth_admin.php';
+
+// The content for these pages is stored in the `settings` table for simplicity.
+// Keys: privacy_policy_content, terms_of_service_content
+
+function get_c($key, $default = '') {
+    global $mysqli;
+    static $content_cache = [];
+    if (isset($content_cache[$key])) return $content_cache[$key];
+
+    $stmt = $mysqli->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+    $stmt->bind_param("s", $key);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $content_cache[$key] = $row['setting_value'];
+        return $row['setting_value'];
+    }
+    return $default;
 }
-require_once '../src/lib/functions.php';
-$message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $privacy_policy = $_POST['privacy_policy'] ?? '';
-    $terms_of_service = $_POST['terms_of_service'] ?? '';
+    $privacy_content = $_POST['privacy_policy_content'] ?? '';
+    $terms_content = $_POST['terms_of_service_content'] ?? '';
 
-    $stmt = $mysqli->prepare("INSERT INTO cms_content (content_key, content_value) VALUES ('privacy_policy', ?) ON DUPLICATE KEY UPDATE content_value = ?");
-    $stmt->bind_param('ss', $privacy_policy, $privacy_policy);
-    $stmt->execute();
+    $update_stmt = $mysqli->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
 
-    $stmt = $mysqli->prepare("INSERT INTO cms_content (content_key, content_value) VALUES ('terms_of_service', ?) ON DUPLICATE KEY UPDATE content_value = ?");
-    $stmt->bind_param('ss', $terms_of_service, $terms_of_service);
-    $stmt->execute();
+    // Update Privacy Policy
+    $key = 'privacy_policy_content';
+    $update_stmt->bind_param("ss", $key, $privacy_content);
+    $update_stmt->execute();
 
-    $message = "Pages updated successfully.";
+    // Update Terms of Service
+    $key = 'terms_of_service_content';
+    $update_stmt->bind_param("ss", $key, $terms_content);
+    $update_stmt->execute();
+
+    $success = true;
 }
 
-// Fetch content from cms_content table
-$privacy_policy = '';
-$terms_of_service = '';
-$content_result = $mysqli->query("SELECT content_key, content_value FROM cms_content WHERE content_key IN ('privacy_policy', 'terms_of_service')");
-while($row = $content_result->fetch_assoc()) {
-    if ($row['content_key'] === 'privacy_policy') {
-        $privacy_policy = $row['content_value'];
-    }
-    if ($row['content_key'] === 'terms_of_service') {
-        $terms_of_service = $row['content_value'];
-    }
-}
+require_once 'includes/header_admin.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head><title>Simple Page Editor</title><link rel="stylesheet" href="../css/admin_style.css"></head>
-<body>
-    <?php include APP_ROOT . '/admin/includes/header.php'; ?>
-    <div class="admin-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/admin/includes/sidebar.php'; ?></aside>
-        <main class="main-content">
-            <h1>Simple Page Editor</h1>
-            <?php if ($message): ?><p><?php echo $message; ?></p><?php endif; ?>
-            <form action="" method="post">
-                <h2>Privacy Policy</h2>
-                <textarea name="privacy_policy" rows="15" style="width:100%;"><?php echo htmlspecialchars($privacy_policy); ?></textarea>
+<div class="container-fluid">
+    <h1>CMS: Simple Page Editor</h1>
+    <?php if (isset($success) && $success): ?>
+        <div class="alert alert-success">Page content saved successfully!</div>
+    <?php endif; ?>
 
-                <h2>Terms of Service</h2>
-                <textarea name="terms_of_service" rows="15" style="width:100%;"><?php echo htmlspecialchars($terms_of_service); ?></textarea>
+    <form action="cms_pages.php" method="POST" class="card">
+        <div class="form-group">
+            <label for="privacy_policy_content"><h3>Privacy Policy</h3></label>
+            <textarea name="privacy_policy_content" id="privacy_policy_content" class="form-control" rows="15"><?php echo htmlspecialchars(get_c('privacy_policy_content')); ?></textarea>
+        </div>
+        <hr>
+        <div class="form-group">
+            <label for="terms_of_service_content"><h3>Terms of Service</h3></label>
+            <textarea name="terms_of_service_content" id="terms_of_service_content" class="form-control" rows="15"><?php echo htmlspecialchars(get_c('terms_of_service_content')); ?></textarea>
+        </div>
 
-                <button type="submit">Save Pages</button>
-            </form>
-        </main>
-    </div>
-    <?php include APP_ROOT . '/admin/includes/footer.php'; ?>
-</body>
-</html>
+        <button type="submit" class="btn btn-primary">Save Page Content</button>
+    </form>
+</div>
+<?php
+require_once 'includes/footer_admin.php';
+?>

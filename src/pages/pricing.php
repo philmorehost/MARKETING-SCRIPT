@@ -1,67 +1,81 @@
 <?php
-// --- src/pages/pricing.php ---
-$packages_result = $mysqli->query("SELECT name, description, price, credits, is_popular FROM credit_packages ORDER BY price ASC");
+// src/pages/pricing.php
+require_once __DIR__ . '/../lib/functions.php';
+
+$page_title = "Pricing";
+
+include __DIR__ . '/../includes/header_public.php';
+
+// Fetch credit packages from the database
+$packages_query = $mysqli->query("SELECT * FROM credit_packages ORDER BY price ASC");
+$packages = $packages_query->fetch_all(MYSQLI_ASSOC);
+
+// Fetch service costs from settings
 $costs = [
-    'Email Verification' => get_setting('price_per_verification', $mysqli, 0.5),
-    'Email Send' => get_setting('price_per_email_send', $mysqli, 1),
-    'SMS Page' => get_setting('price_per_sms_page', $mysqli, 5),
-    'WhatsApp Message' => get_setting('price_per_whatsapp', $mysqli, 10),
+    'Email Verification' => get_setting('price_per_verification', 1),
+    'Email Send' => get_setting('price_per_email_send', 1),
+    'SMS Page (160 chars)' => get_setting('price_per_sms_page', 5),
+    'WhatsApp Message' => get_setting('price_per_whatsapp', 10),
+    'Landing Page Publish' => get_setting('price_landing_page_publish', 100),
+    '1000 AI Content Words' => get_setting('price_per_ai_word', 10),
+    'Social Post' => get_setting('price_per_social_post', 2),
+    'QR Code Generation' => get_setting('price_per_qr_code', 25),
 ];
+
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Pricing - <?php echo htmlspecialchars(get_setting('site_name', $mysqli)); ?></title>
-    <link rel="stylesheet" href="/css/public_style.css">
-</head>
-<body>
-    <?php include APP_ROOT . '/public/includes/site_header.php'; ?>
 
-    <header class="page-header">
-        <div class="container">
-            <h1>Simple Pay-As-You-Go Pricing</h1>
-            <p>No subscriptions. No monthly fees. Only pay for what you use.</p>
-        </div>
-    </header>
+<div class="container page-content">
+    <h1>Our Pricing</h1>
+    <p class="pricing-intro">Our "Pay-as-you-go" model is simple and transparent. Buy credits and use them for any of our services. No monthly fees, no hidden charges. Your credits never expire.</p>
 
-    <section class="pricing-table">
-        <div class="container">
-            <div class="grid-pricing">
-                <?php while ($pkg = $packages_result->fetch_assoc()): ?>
-                <div class="card <?php if ($pkg['is_popular']) echo 'popular'; ?>">
-                    <?php if ($pkg['is_popular']) echo '<div class="popular-badge">Most Popular</div>'; ?>
-                    <h3><?php echo htmlspecialchars($pkg['name']); ?></h3>
-                    <p class="price">$<?php echo number_format($pkg['price'], 2); ?></p>
-                    <p class="credits"><?php echo number_format($pkg['credits']); ?> Credits</p>
-                    <p><?php echo htmlspecialchars($pkg['description']); ?></p>
-                    <a href="/register" class="button-primary">Get Started</a>
-                </div>
-                <?php endwhile; ?>
+    <h2>Buy Credits</h2>
+    <p>Choose a package that suits your needs. The more you buy, the more you save!</p>
+
+    <div class="pricing-grid">
+        <?php foreach ($packages as $pkg) : ?>
+            <div class="pricing-card <?php echo $pkg['is_popular'] ? 'popular' : ''; ?>">
+                <?php if ($pkg['is_popular']) : ?>
+                    <div class="popular-badge">Most Popular</div>
+                <?php endif; ?>
+                <h3><?php echo htmlspecialchars($pkg['name']); ?></h3>
+                <div class="price"><?php echo '$' . number_format($pkg['price'], 2); ?></div>
+                <div class="credits"><?php echo number_format($pkg['credits']); ?> Credits</div>
+                <p><?php echo htmlspecialchars($pkg['description']); ?></p>
+                <a href="/register.php?plan=<?php echo $pkg['id']; ?>" class="cta-button">Get Started</a>
             </div>
+        <?php endforeach; ?>
+         <div class="pricing-card enterprise">
+            <h3>Enterprise</h3>
+            <div class="price">Custom</div>
+            <div class="credits">Unlimited Possibilities</div>
+            <p>Need a custom plan for high-volume usage? Contact us for a personalized quote.</p>
+            <a href="/contact.php" class="cta-button">Contact Sales</a>
         </div>
-    </section>
+    </div>
 
-    <section class="credit-costs">
-        <div class="container">
-            <h2>How Credits Work</h2>
-            <p>Different actions consume a different number of credits. Here’s a breakdown:</p>
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>Action</th><th>Cost in Credits</th></tr></thead>
-                    <tbody>
-                    <?php foreach ($costs as $action => $cost): ?>
-                        <tr>
-                            <td><?php echo $action; ?></td>
-                            <td><?php echo rtrim(rtrim(number_format($cost, 4), '0'), '.'); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
+    <h2 class="cost-title">Cost Per Action</h2>
+    <p>Here's what you can do with your credits. Mix and match any of our services.</p>
 
-    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
-</body>
-</html>
+    <div class="cost-table-container">
+        <table class="cost-table">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Cost in Credits</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($costs as $service => $cost) : ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($service); ?></td>
+                    <td><?php echo number_format($cost); ?> credit(s)</td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<?php
+include __DIR__ . '/../includes/footer_public.php';
+?>

@@ -1,10 +1,11 @@
 <?php
+// src/pages/logout.php
 
-// Unset all of the session variables.
-$_SESSION = array();
+// The main index.php file already starts the session.
+// So we just need to destroy it.
 
-// If it's desired to kill the session, also delete the session cookie.
-// Note: This will destroy the session, and not just the session data!
+$_SESSION = [];
+
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
     setcookie(session_name(), '', time() - 42000,
@@ -13,9 +14,7 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
-// Finally, destroy the session.
 session_destroy();
 
-// Redirect to login page
-header("Location: login.php");
+header("Location: /login");
 exit;

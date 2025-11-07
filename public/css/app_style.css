@@ -1,0 +1,194 @@
+/* public/css/app_style.css */
+:root {
+    --primary-color: #007bff;
+    --sidebar-bg: #2c3e50;
+    --sidebar-text: #ecf0f1;
+    --sidebar-hover: #34495e;
+    --main-bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --border-color: #dee2e6;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--main-bg);
+    color: #333;
+}
+
+.app-layout {
+    display: flex;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+}
+.sidebar-header {
+    padding: 20px;
+    text-align: center;
+}
+.logo {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+}
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+.sidebar-nav a:hover, .sidebar-nav a.active {
+    background-color: var(--sidebar-hover);
+}
+.sidebar-nav i {
+    margin-right: 15px;
+    width: 20px;
+    text-align: center;
+}
+
+.main-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+}
+
+.topbar {
+    background-color: var(--card-bg);
+    padding: 15px 30px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+.credits-display {
+    font-weight: 600;
+    margin-right: 30px;
+}
+.user-menu {
+    position: relative;
+    cursor: pointer;
+}
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+.user-menu .dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50px;
+    background-color: var(--card-bg);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    width: 150px;
+}
+.user-menu:hover .dropdown {
+    display: block;
+}
+.dropdown a {
+    display: block;
+    padding: 12px 15px;
+    text-decoration: none;
+    color: #333;
+}
+.dropdown a:hover {
+    background-color: #f0f0f0;
+}
+
+
+.page-container {
+    padding: 30px;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+/* Card styles */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+/* Button styles */
+.btn {
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+.btn-primary {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+}
+.pricing-card {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    text-align: center;
+}
+.pricing-card.popular {
+    border: 2px solid var(--primary-color);
+}
+.price {
+    font-size: 2rem; font-weight: 700;
+}
+.credits {
+    font-size: 1.2rem; color: var(--primary-color);
+}
+.cta-button {
+    display: inline-block;
+    background: var(--primary-color);
+    color: #fff;
+    padding: 12px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+.manual-payment-option {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+.bank-details {
+    background: #f0f0f0;
+    padding: 20px;
+    border-radius: 8px;
+    display: inline-block;
+    text-align: left;
+    margin: 20px 0;
+}

@@ -1,138 +1,178 @@
 <?php
-require_once '../config/db.php';
+// src/pages/dashboard.php
+require_once __DIR__ . '/../lib/functions.php';
+require_once __DIR__ . '/../lib/auth.php';
+check_login();
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /login');
-    exit;
-}
+$page_title = "Dashboard";
 
-$user_id = $_SESSION['user_id'];
-
-// Fetch user data
-$stmt = $mysqli->prepare("SELECT credit_balance, first_login_wizard_complete FROM users WHERE id = ?");
-$stmt->bind_param('i', $user_id);
-$stmt->execute();
-$user = $stmt->get_result()->fetch_assoc();
-
-$show_wizard = !$user['first_login_wizard_complete'];
-
-// Placeholder stats
+// --- Data Fetching for Stats ---
 $stats = [
-    'total_contacts' => 0,
+    'contacts' => 0,
     'emails_verified' => 0,
     'emails_sent' => 0,
     'sms_sent' => 0,
+    'whatsapps_sent' => 0,
+    'landing_pages' => 0,
+    'social_posts' => 0,
+    'qr_codes' => 0,
 ];
+$team_id_condition = $user['team_id'] ? "team_id = " . $user['team_id'] : "user_id = " . $user['id'];
 
+// This can be optimized into a single query with UNION ALL
+$stats['contacts'] = $mysqli->query("SELECT COUNT(*) FROM contacts WHERE $team_id_condition")->fetch_row()[0];
+$stats['emails_verified'] = $mysqli->query("SELECT SUM(total_emails) FROM verification_jobs WHERE $team_id_condition")->fetch_row()[0] ?? 0;
+// ... add other queries for emails_sent, sms_sent etc. later
+
+
+// Fetch recent verification jobs
+$recent_jobs_query = $mysqli->query("SELECT * FROM verification_jobs WHERE $team_id_condition ORDER BY created_at DESC LIMIT 5");
+$recent_jobs = $recent_jobs_query->fetch_all(MYSQLI_ASSOC);
+
+
+include __DIR__ . '/../includes/header_app.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="css/dashboard_style.css">
-</head>
-<body>
-    <?php include APP_ROOT . '/public/includes/header.php'; // We need to update this to show credits ?>
 
-    <div class="user-container">
-        <aside class="sidebar">
-            <?php include APP_ROOT . '/public/includes/sidebar.php'; ?>
-        </aside>
-        <main class="main-content">
-            <h1>Dashboard</h1>
+<div class="container app-content">
 
-            <?php if ($show_wizard): ?>
-            <div id="wizard-modal" class="modal-overlay">
-                <div class="modal-content">
-                    <div id="wizard-step-1" class="wizard-step">
-                        <h2>Welcome to the Platform!</h2>
-                        <p>Let's get you started in just a few quick steps.</p>
-                        <button onclick="nextStep(2)">Start Setup</button>
-                    </div>
-                    <div id="wizard-step-2" class="wizard-step" style="display:none;">
-                        <h2>Step 1: Create a Contact List</h2>
-                        <p>This is where you'll store your contacts. Give your first list a name.</p>
-                        <input type="text" id="wizard-list-name" placeholder="e.g., Newsletter Subscribers">
-                        <button onclick="createList()">Create List & Continue</button>
-                    </div>
-                    <div id="wizard-step-3" class="wizard-step" style="display:none;">
-                        <h2>Step 2: Get Some Credits</h2>
-                        <p>Our platform is pay-as-you-go. Buy credits to use for email, SMS, and other services.</p>
-                        <a href="buy-credits.php" class="button-primary">Go to "Buy Credits"</a>
-                        <button onclick="finishWizard()">I'll do this later</button>
-                    </div>
-                </div>
+    <?php // --- First-Time Login Wizard --- ?>
+    <?php if (!$user['first_login_wizard_complete']): ?>
+    <div class="wizard-overlay">
+        <div class="wizard-card">
+            <h2 id="wizard-title">Welcome to the Platform!</h2>
+            <div id="wizard-step-1">
+                <p>Let's get you started. First, create a contact list to store your audience.</p>
+                <input type="text" id="wizard-list-name" placeholder="e.g., Newsletter Subscribers">
+                <button onclick="createList()" class="btn btn-primary">Create List</button>
             </div>
-            <?php endif; ?>
-
-            <div class="stats-grid">
-                <div class="card main-credits-card">
-                    <h3>Available Credits</h3>
-                    <p><?php echo number_format($user['credit_balance'], 4); ?></p>
-                    <a href="buy-credits.php" class="button">Buy More</a>
-                </div>
-                <div class="card">
-                    <h3>Total Contacts</h3>
-                    <p><?php echo $stats['total_contacts']; ?></p>
-                </div>
-                <div class="card">
-                    <h3>Emails Verified</h3>
-                    <p><?php echo $stats['emails_verified']; ?></p>
-                </div>
-                <div class="card">
-                    <h3>Emails Sent</h3>
-                    <p><?php echo $stats['emails_sent']; ?></p>
-                </div>
-                 <div class="card">
-                    <h3>SMS Sent</h3>
-                    <p><?php echo $stats['sms_sent']; ?></p>
-                </div>
+            <div id="wizard-step-2" style="display:none;">
+                 <p>Great! Your list has been created. The next step is to add credits to your account so you can start using our services.</p>
+                 <a href="/buy-credits" class="btn btn-primary">Buy Credits</a>
             </div>
+             <a href="#" onclick="skipWizard()" class="wizard-skip">I'll do this later</a>
+        </div>
+    </div>
+    <?php endif; ?>
 
-            <!-- Charts will go here -->
-            <div class="charts-section">
 
-            </div>
-        </main>
+    <h1>Dashboard</h1>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Available Credits</h3>
+            <p><?php echo number_format($user['credit_balance'], 2); ?></p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Contacts</h3>
+            <p><?php echo number_format($stats['contacts']); ?></p>
+        </div>
+        <div class="stat-card">
+            <h3>Emails Verified</h3>
+            <p><?php echo number_format($stats['emails_verified']); ?></p>
+        </div>
+        <div class="stat-card">
+            <h3>Emails Sent</h3>
+            <p><?php echo number_format($stats['emails_sent']); ?></p>
+        </div>
     </div>
 
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
+    <div class="charts-section">
+        <div class="card">
+            <h3>Credit Spending (Last 30 Days)</h3>
+            <canvas id="creditSpendingChart"></canvas>
+        </div>
+    </div>
 
-    <?php if ($show_wizard): ?>
-    <script>
-        function nextStep(step) {
-            document.getElementById('wizard-step-' + (step - 1)).style.display = 'none';
-            document.getElementById('wizard-step-' + step).style.display = 'block';
+    <div class="recent-activity">
+        <div class="card">
+            <h3>Recent Verification Jobs</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Job Name</th>
+                        <th>Date</th>
+                        <th>Total Emails</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($recent_jobs)): ?>
+                        <tr><td colspan="5">You haven't run any verification jobs yet.</td></tr>
+                    <?php else: ?>
+                        <?php foreach($recent_jobs as $job): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($job['job_name']); ?></td>
+                            <td><?php echo date('M d, Y', strtotime($job['created_at'])); ?></td>
+                            <td><?php echo number_format($job['total_emails']); ?></td>
+                            <td><span class="status-badge <?php echo $job['status']; ?>"><?php echo ucfirst($job['status']); ?></span></td>
+                            <td>
+                                <?php if ($job['status'] === 'completed'): ?>
+                                    <a href="/download-verification.php?job_id=<?php echo $job['id']; ?>" class="btn btn-sm">Download</a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Dummy data for chart - this would be fetched via AJAX
+const creditSpendingData = {
+    labels: ['Verification', 'Email', 'SMS', 'WhatsApp'],
+    datasets: [{
+        label: 'Credits Spent',
+        data: [1250, 1980, 850, 400],
+        backgroundColor: [
+            'rgba(255, 99, 132, 0.7)',
+            'rgba(54, 162, 235, 0.7)',
+            'rgba(255, 206, 86, 0.7)',
+            'rgba(75, 192, 192, 0.7)'
+        ],
+    }]
+};
+new Chart(document.getElementById('creditSpendingChart'), {
+    type: 'doughnut',
+    data: creditSpendingData,
+});
+
+
+function createList() {
+    const listName = document.getElementById('wizard-list-name').value;
+    if (!listName) { alert('Please enter a list name.'); return; }
+
+    fetch('/ajax/wizard_create_list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ list_name: listName })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('wizard-step-1').style.display = 'none';
+            document.getElementById('wizard-step-2').style.display = 'block';
+            document.getElementById('wizard-title').innerText = "Step 2: Fund Your Account";
+        } else {
+            alert(data.message || 'Could not create list.');
         }
+    });
+}
 
-        function createList() {
-            const listName = document.getElementById('wizard-list-name').value;
-            if (listName.trim() === '') {
-                alert('Please enter a list name.');
-                return;
-            }
+function skipWizard() {
+     fetch('/ajax/wizard_complete', { method: 'POST' })
+    .then(() => {
+        document.querySelector('.wizard-overlay').style.display = 'none';
+    });
+}
 
-            fetch('ajax/wizard_create_list.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'list_name=' + encodeURIComponent(listName)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    nextStep(3);
-                } else {
-                    alert('Error: ' + (data.error || 'Could not create list.'));
-                }
-            });
-        }
+</script>
 
-        function finishWizard() {
-            fetch('ajax/wizard_complete.php', { method: 'POST' });
-            document.getElementById('wizard-modal').style.display = 'none';
-        }
-    </script>
-    <?php endif; ?>
-</body>
-</html>
+<?php
+include __DIR__ . '/../includes/footer_app.php';
+?>

@@ -1,58 +1,50 @@
 <?php
-require_once '../config/db.php';
+// src/pages/whatsapp-reports.php
+require_once __DIR__ . '/../lib/functions.php';
+require_once __DIR__ . '/../lib/auth.php';
+check_login();
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /login');
-    exit;
-}
-$user_id = $_SESSION['user_id'];
-$team_id = $_SESSION['team_id'];
+$page_title = "WhatsApp Campaign Reports";
 
-// Fetch sent WhatsApp campaigns for the team
-$search = $_GET['search'] ?? '';
-if ($search) {
-    $stmt = $mysqli->prepare("SELECT id, template_name, cost_in_credits, status, created_at FROM whatsapp_campaigns WHERE team_id = ? AND (status = 'sent' OR status = 'sending') AND template_name LIKE ? ORDER BY created_at DESC");
-    $search_param = "%{$search}%";
-    $stmt->bind_param('is', $team_id, $search_param);
-} else {
-    $stmt = $mysqli->prepare("SELECT id, template_name, cost_in_credits, status, created_at FROM whatsapp_campaigns WHERE team_id = ? AND (status = 'sent' OR status = 'sending') ORDER BY created_at DESC");
-    $stmt->bind_param('i', $team_id);
-}
-$stmt->execute();
-$campaigns = $stmt->get_result();
+// Fetch sent whatsapp campaigns
+$team_id_condition = $user['team_id'] ? "team_id = " . $user['team_id'] : "user_id = " . $user['id'];
+$campaigns_query = $mysqli->query("
+    SELECT wc.id, wc.template_name, wc.created_at,
+           (SELECT COUNT(*) FROM whatsapp_queue wq WHERE wq.campaign_id = wc.id AND wq.status = 'delivered') as total_delivered,
+           (SELECT COUNT(*) FROM whatsapp_queue wq WHERE wq.campaign_id = wc.id AND wq.status = 'read') as total_read
+    FROM whatsapp_campaigns wc
+    WHERE wc.$team_id_condition
+    ORDER BY wc.created_at DESC
+");
+$campaigns = $campaigns_query->fetch_all(MYSQLI_ASSOC);
+
+include __DIR__ . '/../includes/header_app.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head><title>WhatsApp Campaign Reports</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
-<body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
-    <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
-        <main class="main-content">
-            <h1>WhatsApp Campaign Reports</h1>
-
-            <form method="get" action="/whatsapp-reports">
-                <input type="text" name="search" placeholder="Search by template name..." value="<?php echo htmlspecialchars($search); ?>">
-                <button type="submit">Search</button>
-            </form>
-
-            <table>
-                <thead><tr><th>Template Name</th><th>Cost (Credits)</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
-                <tbody>
-                <?php while ($campaign = $campaigns->fetch_assoc()): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($campaign['template_name']); ?></td>
-                        <td><?php echo number_format($campaign['cost_in_credits'], 4); ?></td>
-                        <td><?php echo htmlspecialchars($campaign['status']); ?></td>
-                        <td><?php echo $campaign['created_at']; ?></td>
-                        <td><a href="view-whatsapp-report.php?id=<?php echo $campaign['id']; ?>">View Details</a></td>
-                    </tr>
-                <?php endwhile; ?>
-                </tbody>
-            </table>
-        </main>
+<div class="container app-content">
+    <h1>WhatsApp Campaign Reports</h1>
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Campaign</th>
+                    <th>Delivered</th>
+                    <th>Read</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach($campaigns as $c): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($c['template_name']); ?></td>
+                    <td><?php echo $c['total_delivered']; ?></td>
+                    <td><?php echo $c['total_read']; ?></td>
+                    <td><a href="/view-whatsapp-report?id=<?php echo $c['id']; ?>" class="btn btn-sm btn-info">View Report</a></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
-</body>
-</html>
+</div>
+<?php
+include __DIR__ . '/../includes/footer_app.php';
+?>

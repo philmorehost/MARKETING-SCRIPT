@@ -1,99 +1,109 @@
 <?php
-// This script should be run every minute via a cron job.
-// Example: * * * * * /usr/bin/php /path/to/your/project/src/cron/sms_cron.php >> /path/to/your/project/logs/sms.log 2>&1
+// src/cron/sms_cron.php
+// This script is run by a cron job every minute.
 
-define('APP_ROOT', dirname(__DIR__, 2)); require_once APP_ROOT . '/config/db.php';
-require_once APP_ROOT . '/src/lib/functions.php';
+if (PHP_SAPI !== 'cli') {
+    die('This script can only be run from the command line.');
+}
+
+require_once dirname(__DIR__) . '/config/db.php';
+require_once dirname(__DIR__) . '/src/lib/functions.php';
 
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
+    echo "Database connection failed: " . $mysqli->connect_error . "\n";
+    exit(1);
 }
 
-// --- Fetch API Settings ---
-$api_key = get_setting('philmorsms_api_key', $mysqli);
-$default_sender_id = get_setting('philmorsms_sender_id', $mysqli);
+echo "Running SMS Cron Job...\n";
+
+// --- API Details ---
+$api_token = get_setting('philmorsms_api_key');
 $api_url = 'https://app.philmoresms.com/api/sms.php';
 
-if (empty($api_key)) {
-    echo "PhilmoreSMS API key is not set. Exiting.\n";
-    exit;
+if (empty($api_token)) {
+    echo "PhilmoreSMS API key is not configured. Exiting.\n";
+    exit(1);
 }
 
-// --- Fetch a batch of pending SMS messages ---
-$limit = 100; // Process 100 messages per run
-$stmt = $mysqli->prepare(
-    "SELECT q.id, q.phone_number, c.sender_id, c.message_body
-     FROM sms_queue q
-     JOIN sms_campaigns c ON q.sms_campaign_id = c.id
-     WHERE q.status = 'queued'
-     ORDER BY q.id ASC
-     LIMIT ?"
-);
-$stmt->bind_param('i', $limit);
+// --- Fetch a batch of SMS to send ---
+$batch_size = 100; // Send 100 messages per run
+$stmt = $mysqli->prepare("
+    SELECT sq.id, sq.phone_number, sc.sender_id, sc.message_body
+    FROM sms_queue sq
+    JOIN sms_campaigns sc ON sq.sms_campaign_id = sc.id
+    WHERE sq.status = 'queued'
+    LIMIT ?
+");
+$stmt->bind_param("i", $batch_size);
 $stmt->execute();
-$pending_sms = $stmt->get_result();
+$result = $stmt->get_result();
+$messages_to_send = $result->fetch_all(MYSQLI_ASSOC);
 
-if ($pending_sms->num_rows === 0) {
-    echo "No pending SMS to send.\n";
-    exit;
+if (empty($messages_to_send)) {
+    echo "No SMS in queue. Exiting.\n";
+    exit(0);
 }
 
-// --- Process each SMS ---
-while ($sms = $pending_sms->fetch_assoc()) {
-    $queue_id = $sms['id'];
-    $recipient = $sms['phone_number'];
-    $sender_id = !empty($sms['sender_id']) ? $sms['sender_id'] : $default_sender_id;
-    $message = $sms['message_body'];
+echo "Found " . count($messages_to_send) . " messages to send.\n";
+$update_stmt = $mysqli->prepare("UPDATE sms_queue SET status = ?, api_message_id = ? WHERE id = ?");
 
-    // Update status to 'sending' to prevent reprocessing
-    $update_stmt = $mysqli->prepare("UPDATE sms_queue SET status = 'sending' WHERE id = ?");
-    $update_stmt->bind_param('i', $queue_id);
-    $update_stmt->execute();
+// --- Group messages by sender and body to send in batches ---
+$campaign_batches = [];
+foreach ($messages_to_send as $msg) {
+    $key = $msg['sender_id'] . '::' . $msg['message_body'];
+    if (!isset($campaign_batches[$key])) {
+        $campaign_batches[$key] = [
+            'sender_id' => $msg['sender_id'],
+            'message' => $msg['message_body'],
+            'recipients' => [],
+            'queue_ids' => []
+        ];
+    }
+    $campaign_batches[$key]['recipients'][] = $msg['phone_number'];
+    $campaign_batches[$key]['queue_ids'][] = $msg['id'];
+}
 
-    // --- Make API Call to PhilmoreSMS ---
-    $postData = http_build_query([
-        'token' => $api_key,
-        'senderID' => $sender_id,
-        'recipients' => $recipient,
-        'message' => $message
-    ]);
+
+// --- Send Batches to API ---
+foreach ($campaign_batches as $batch) {
+    $postData = [
+        'token' => $api_token,
+        'senderID' => $batch['sender_id'],
+        'recipients' => implode(',', $batch['recipients']),
+        'message' => $batch['message'],
+    ];
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $api_url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $response = curl_exec($ch);
-    $err = curl_error($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    $final_status = '';
-    $api_message_id = null;
+    $api_response = json_decode($response, true);
 
-    if ($err) {
-        $final_status = 'failed';
-        echo "cURL Error for queue ID {$queue_id}: {$err}\n";
+    // --- Update Queue Status ---
+    // This is a simplified update. A real implementation would parse the response
+    // to match individual message IDs if the API provides them.
+    if ($http_code == 200 && isset($api_response['status']) && $api_response['status'] === 'success') {
+        $status = 'sent';
+        $message_id = $api_response['message_id'] ?? 'batch_' . time();
+        echo "  - Batch sent successfully. Sender: {$batch['sender_id']}\n";
     } else {
-        // Assuming the API returns a simple success/fail or a JSON response.
-        // This part needs to be adapted based on the actual API response format.
-        // Let's assume 'success' means it was accepted by the API.
-        if (strpos(strtolower($response), 'success') !== false) {
-            $final_status = 'sent'; // Or 'delivered' if the API confirms that
-            // You might want to parse the response to get a message ID
-            // e.g., $api_response = json_decode($response, true); $api_message_id = $api_response['message_id'];
-            echo "Successfully sent SMS for queue ID {$queue_id}.\n";
-        } else {
-            $final_status = 'failed';
-            echo "API Error for queue ID {$queue_id}: {$response}\n";
-        }
+        $status = 'failed';
+        $message_id = $response;
+         echo "  - Batch failed. Sender: {$batch['sender_id']}. Response: $response\n";
     }
 
-    // --- Update Queue Record ---
-    $result_stmt = $mysqli->prepare("UPDATE sms_queue SET status = ?, api_message_id = ? WHERE id = ?");
-    $result_stmt->bind_param('ssi', $final_status, $api_message_id, $queue_id);
-    $result_stmt->execute();
+    foreach ($batch['queue_ids'] as $queue_id) {
+        $update_stmt->bind_param("ssi", $status, $message_id, $queue_id);
+        $update_stmt->execute();
+    }
 }
 
-echo "SMS cron run finished.\n";
+echo "Cron job complete.\n";
 $mysqli->close();
+exit(0);

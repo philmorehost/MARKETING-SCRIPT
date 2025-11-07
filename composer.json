@@ -5,7 +5,8 @@
     "require": {
         "php": "^8.1",
         "phpmailer/phpmailer": "^6.9",
-        "endroid/qr-code": "^5.0"
+        "endroid/qr-code": "^5.0",
+        "google/apiclient": "^2.12.1"
     },
     "authors": [
         {

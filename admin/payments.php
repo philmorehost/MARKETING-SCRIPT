@@ -1,129 +1,117 @@
 <?php
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: /login');
+$page_title = "Manual Payment Verification";
+require_once 'auth_admin.php';
+
+// --- Action Logic ---
+$action = $_GET['action'] ?? null;
+$payment_id = $_GET['id'] ?? null;
+if ($action && $payment_id) {
+    $mysqli->begin_transaction();
+    try {
+        // Get payment details
+        $payment_stmt = $mysqli->prepare("SELECT * FROM manual_payments WHERE id = ? AND status = 'pending'");
+        $payment_stmt->bind_param("i", $payment_id);
+        $payment_stmt->execute();
+        $payment = $payment_stmt->get_result()->fetch_assoc();
+
+        if ($payment) {
+            if ($action === 'approve') {
+                // 1. Get package credits
+                $pkg_stmt = $mysqli->prepare("SELECT credits, name FROM credit_packages WHERE id = ?");
+                $pkg_stmt->bind_param("i", $payment['credit_package_id']);
+                $pkg_stmt->execute();
+                $package = $pkg_stmt->get_result()->fetch_assoc();
+                $credits_to_add = $package['credits'];
+
+                // 2. Add credits to user
+                $update_user_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance + ? WHERE id = ?");
+                $update_user_stmt->bind_param("di", $credits_to_add, $payment['user_id']);
+                $update_user_stmt->execute();
+
+                // 3. Create transaction record
+                $trans_stmt = $mysqli->prepare("INSERT INTO transactions (user_id, type, gateway, description, amount_usd, amount_credits, status) VALUES (?, 'purchase', 'manual', ?, ?, ?, 'completed')");
+                $description = "Manual purchase of " . $package['name'];
+                $trans_stmt->bind_param("isdd", $payment['user_id'], $description, $payment['amount'], $credits_to_add);
+                $trans_stmt->execute();
+
+                // 4. Update payment status
+                $update_payment_stmt = $mysqli->prepare("UPDATE manual_payments SET status = 'approved' WHERE id = ?");
+                $update_payment_stmt->bind_param("i", $payment_id);
+                $update_payment_stmt->execute();
+
+                // 5. Create notification
+                create_notification($payment['user_id'], "Your manual payment for " . $package['name'] . " was approved. {$credits_to_add} credits have been added.", "/billing");
+
+            } elseif ($action === 'reject') {
+                // Just update the status
+                $update_payment_stmt = $mysqli->prepare("UPDATE manual_payments SET status = 'rejected' WHERE id = ?");
+                $update_payment_stmt->bind_param("i", $payment_id);
+                $update_payment_stmt->execute();
+            }
+            $mysqli->commit();
+        }
+    } catch (Exception $e) {
+        $mysqli->rollback();
+        // Handle error
+    }
+    header('Location: payments.php');
     exit;
 }
 
-$message = '';
 
-// Handle Approval/Rejection
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['payment_id'])) {
-    $payment_id = (int)$_POST['payment_id'];
-    $action = $_POST['action'];
+// --- Fetch Pending Payments ---
+$query = "SELECT mp.*, u.name as user_name, u.email as user_email
+          FROM manual_payments mp
+          JOIN users u ON mp.user_id = u.id
+          WHERE mp.status = 'pending'
+          ORDER BY mp.created_at ASC";
+$pending_payments = $mysqli->query($query)->fetch_all(MYSQLI_ASSOC);
 
-    // Fetch payment details
-    $stmt = $mysqli->prepare("SELECT user_id, credit_package_name, amount FROM manual_payments WHERE id = ? AND status = 'pending'");
-    $stmt->bind_param('i', $payment_id);
-    $stmt->execute();
-    $payment = $stmt->get_result()->fetch_assoc();
-
-    if ($payment) {
-        $user_id = $payment['user_id'];
-        $amount_usd = $payment['amount'];
-        $package_name = $payment['credit_package_name'];
-
-        if ($action === 'approve') {
-            // Find the corresponding credit package to get the credits
-            $stmt = $mysqli->prepare("SELECT credits FROM credit_packages WHERE name = ?");
-            $stmt->bind_param('s', $package_name);
-            $stmt->execute();
-            $package = $stmt->get_result()->fetch_assoc();
-
-            if ($package) {
-                $credits_to_add = $package['credits'];
-                $package_name = $package['name'];
-
-                // Use a transaction
-                $mysqli->begin_transaction();
-                try {
-                    // 1. Add credits to user
-                    $update_user = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance + ? WHERE id = ?");
-                    $update_user->bind_param('di', $credits_to_add, $user_id);
-                    $update_user->execute();
-
-                    // 2. Create a transaction record
-                    $desc = "Credits purchased via Bank Transfer: {$package_name}";
-                    $insert_tx = $mysqli->prepare("INSERT INTO transactions (user_id, type, description, amount_usd, amount_credits, status) VALUES (?, 'purchase', ?, ?, ?, 'completed')");
-                    $insert_tx->bind_param('isdd', $user_id, $desc, $amount_usd, $credits_to_add);
-                    $insert_tx->execute();
-
-                    // 3. Update payment status
-                    $update_payment = $mysqli->prepare("UPDATE manual_payments SET status = 'approved' WHERE id = ?");
-                    $update_payment->bind_param('i', $payment_id);
-                    $update_payment->execute();
-
-                    $mysqli->commit();
-                    $message = "Payment approved and credits added.";
-
-                } catch (Exception $e) {
-                    $mysqli->rollback();
-                    $message = "An error occurred. Transaction rolled back.";
-                }
-            } else {
-                $message = "Error: Credit package '{$package_name}' not found in database.";
-            }
-
-        } elseif ($action === 'reject') {
-            $stmt = $mysqli->prepare("UPDATE manual_payments SET status = 'rejected' WHERE id = ?");
-            $stmt->bind_param('i', $payment_id);
-            $stmt->execute();
-            $message = "Payment rejected.";
-        }
-    }
-}
-
-
-// Fetch pending payments
-$pending_payments_result = $mysqli->query("SELECT mp.*, u.email FROM manual_payments mp JOIN users u ON mp.user_id = u.id WHERE mp.status = 'pending' ORDER BY mp.created_at ASC");
-
+require_once 'includes/header_admin.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Manual Payment Verification</title>
-    <link rel="stylesheet" href="../css/admin_style.css">
-</head>
-<body>
-    <?php include APP_ROOT . '/admin/includes/header.php'; ?>
-    <div class="admin-container">
-        <aside class="sidebar">
-            <?php include APP_ROOT . '/admin/includes/sidebar.php'; ?>
-        </aside>
-        <main class="main-content">
-            <h1>Manual Payment Verification</h1>
-            <?php if ($message): ?><div class="message success"><?php echo $message; ?></div><?php endif; ?>
+<div class="container-fluid">
+    <h1>Manual Payment Verification</h1>
+    <p>Review and approve payments made via manual bank transfer.</p>
 
-            <table>
-                <thead>
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Package Name</th>
+                    <th>Amount</th>
+                    <th>Proof</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($pending_payments)): ?>
+                    <tr><td colspan="6">No pending payments found.</td></tr>
+                <?php else: ?>
+                    <?php foreach ($pending_payments as $payment): ?>
                     <tr>
-                        <th>User</th>
-                        <th>Package/Amount</th>
-                        <th>Proof</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($payment = $pending_payments_result->fetch_assoc()): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($payment['email']); ?></td>
-                        <td><?php echo htmlspecialchars($payment['credit_package_name']); ?> ($<?php echo $payment['amount']; ?>)</td>
-                        <td><a href="../<?php echo htmlspecialchars($payment['proof_path']); ?>" target="_blank">View Proof</a></td>
                         <td><?php echo $payment['created_at']; ?></td>
                         <td>
-                            <form action="" method="post" style="display:inline;">
-                                <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
-                                <button type="submit" name="action" value="approve">Approve</button>
-                                <button type="submit" name="action" value="reject">Reject</button>
-                            </form>
+                            <?php echo htmlspecialchars($payment['user_name']); ?><br>
+                            <small><?php echo htmlspecialchars($payment['user_email']); ?></small>
+                        </td>
+                        <td><?php echo htmlspecialchars($payment['credit_package_name']); ?></td>
+                        <td>$<?php echo number_format($payment['amount'], 2); ?></td>
+                        <td>
+                            <a href="<?php echo $payment['proof_path']; ?>" target="_blank" class="btn btn-sm btn-info">View Proof</a>
+                        </td>
+                        <td>
+                             <a href="payments.php?action=approve&id=<?php echo $payment['id']; ?>" class="btn btn-sm btn-success" onclick="return confirm('Are you sure you want to approve this payment and add credits?')">Approve</a>
+                             <a href="payments.php?action=reject&id=<?php echo $payment['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to reject this payment?')">Reject</a>
                         </td>
                     </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        </main>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
-    <?php include APP_ROOT . '/admin/includes/footer.php'; ?>
-</body>
-</html>
+</div>
+<?php
+require_once 'includes/footer_admin.php';
+?>

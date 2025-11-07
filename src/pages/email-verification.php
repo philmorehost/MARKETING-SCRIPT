@@ -1,123 +1,128 @@
 <?php
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /login');
-    exit;
-}
-$user_id = $_SESSION['user_id'];
-$team_id = $_SESSION['team_id'];
-$team_owner_id = $_SESSION['team_owner_id'];
-$message = '';
+// src/pages/email-verification.php
+require_once __DIR__ . '/../lib/functions.php';
+require_once __DIR__ . '/../lib/auth.php';
+check_login();
 
-$price_per_verification = (float)get_setting('price_per_verification', $mysqli, 0.5);
+$page_title = "Bulk Email Verification";
+$errors = [];
+$success = false;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_emails'])) {
+$cost_per_verification = get_setting('price_per_verification', 1);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $job_name = trim($_POST['job_name'] ?? 'Verification Job');
-    $emails_raw = trim($_POST['emails'] ?? '');
-    $emails = array_unique(array_filter(preg_split('/[\s,]+/', $emails_raw), function($email) {
-        return filter_var(trim($email), FILTER_VALIDATE_EMAIL);
-    }));
-    $email_count = count($emails);
+    $emails_textarea = trim($_POST['emails_list'] ?? '');
+    $email_file = $_FILES['email_csv'] ?? null;
 
-    if ($email_count > 0) {
-        $total_cost = $email_count * $price_per_verification;
-
-        $stmt_balance = $mysqli->prepare("SELECT credit_balance FROM users WHERE id = ?");
-        $stmt_balance->bind_param('i', $team_owner_id);
-        $stmt_balance->execute();
-        $user_balance = (float)$stmt_balance->get_result()->fetch_assoc()['credit_balance'];
-
-        if ($user_balance >= $total_cost) {
-            $mysqli->begin_transaction();
-            try {
-                $update_credits_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
-                $update_credits_stmt->bind_param('di', $total_cost, $team_owner_id);
-                $update_credits_stmt->execute();
-
-                $stmt_job = $mysqli->prepare("INSERT INTO verification_jobs (user_id, team_id, job_name, total_emails, cost_in_credits) VALUES (?, ?, ?, ?, ?)");
-                $stmt_job->bind_param('iisid', $user_id, $team_id, $job_name, $email_count, $total_cost);
-                $stmt_job->execute();
-                $job_id = $stmt_job->insert_id;
-
-                $queue_stmt = $mysqli->prepare("INSERT INTO verification_queue (job_id, email_address) VALUES (?, ?)");
-                foreach ($emails as $email) {
-                    $queue_stmt->bind_param('is', $job_id, $email);
-                    $queue_stmt->execute();
+    $emails = [];
+    if (!empty($emails_textarea)) {
+        $emails = array_filter(array_map('trim', explode("\n", $emails_textarea)));
+    } elseif ($email_file && $email_file['error'] === UPLOAD_ERR_OK) {
+        if (($handle = fopen($email_file['tmp_name'], "r")) !== FALSE) {
+            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                // Assuming email is in the first column
+                if (filter_var($data[0], FILTER_VALIDATE_EMAIL)) {
+                    $emails[] = $data[0];
                 }
-
-                $mysqli->commit();
-                $message = "Verification job '{$job_name}' has been queued with {$email_count} unique, valid emails.";
-            } catch (Exception $e) {
-                $mysqli->rollback();
-                $message = "An error occurred while queuing the job.";
             }
-        } else {
-            $message = "Insufficient credits. You need {$total_cost} credits, but you only have {$user_balance}.";
+            fclose($handle);
         }
-    } else {
-        $message = "Please enter at least one valid email address.";
+    }
+
+    $total_emails = count($emails);
+    if ($total_emails === 0) {
+        $errors[] = "Please provide at least one email address to verify.";
+    }
+
+    $total_cost = $total_emails * $cost_per_verification;
+
+    if ($user['credit_balance'] < $total_cost) {
+        $errors[] = "Insufficient credits. You need " . number_format($total_cost) . " credits, but you only have " . number_format($user['credit_balance']) . ".";
+    }
+
+    if (empty($errors)) {
+        // 1. Deduct credits
+        $mysqli->begin_transaction();
+        try {
+            $deduct_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
+            $deduct_stmt->bind_param("di", $total_cost, $user['id']);
+            $deduct_stmt->execute();
+
+            // 2. Create verification job
+            $job_stmt = $mysqli->prepare("INSERT INTO verification_jobs (user_id, team_id, job_name, total_emails, cost_in_credits) VALUES (?, ?, ?, ?, ?)");
+            $job_stmt->bind_param("iisid", $user['id'], $user['team_id'], $job_name, $total_emails, $total_cost);
+            $job_stmt->execute();
+            $job_id = $job_stmt->insert_id;
+
+            // 3. Add emails to the queue
+            $queue_stmt = $mysqli->prepare("INSERT INTO verification_queue (job_id, email_address) VALUES (?, ?)");
+            foreach ($emails as $email) {
+                $queue_stmt->bind_param("is", $job_id, $email);
+                $queue_stmt->execute();
+            }
+
+            // 4. Record transaction
+            $trans_stmt = $mysqli->prepare("INSERT INTO transactions (user_id, type, description, amount_credits, status) VALUES (?, 'spend_verify', ?, ?, 'completed')");
+            $description = "Email verification job: " . $job_name;
+            $trans_stmt->bind_param("isd", $user['id'], $description, $total_cost);
+            $trans_stmt->execute();
+
+            $mysqli->commit();
+            $success = true;
+
+        } catch (Exception $e) {
+            $mysqli->rollback();
+            $errors[] = "An error occurred: " . $e->getMessage();
+        }
     }
 }
 
-// Fetch past verification jobs for the team
-$jobs_result = $mysqli->prepare("SELECT job_name, total_emails, cost_in_credits, status, created_at FROM verification_jobs WHERE team_id = ? ORDER BY created_at DESC");
-$jobs_result->bind_param('i', $team_id);
-$jobs_result->execute();
-$jobs = $jobs_result->get_result();
+include __DIR__ . '/../includes/header_app.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head><title>Email Verification</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
-<body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
-    <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
-        <main class="main-content">
-            <h1>Bulk Email Verification</h1>
-            <?php if ($message): ?><div class="message"><?php echo htmlspecialchars($message); ?></div><?php endif; ?>
-            <div class="card">
-                <h2>New Verification Job</h2>
-                <form action="/email-verification" method="post">
-                    <input type="hidden" name="verify_emails" value="1">
-                    <div class="form-group"><label for="job_name">Job Name</label><input type="text" id="job_name" name="job_name" required></div>
-                    <div class="form-group"><label for="emails">Paste Emails</label><textarea id="emails" name="emails" rows="10" placeholder="Paste emails here, one per line or separated by commas."></textarea></div>
-                    <p>Cost per email: <strong><?php echo $price_per_verification; ?> credits</strong></p>
-                    <div id="cost-estimator">Emails detected: 0 | Estimated Cost: 0.00 credits</div>
-                    <button type="submit">Queue Verification Job</button>
-                </form>
-            </div>
-            <hr>
-            <h2>Your Verification Jobs</h2>
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>Job Name</th><th>Emails</th><th>Cost</th><th>Status</th><th>Date</th></tr></thead>
-                    <tbody>
-                    <?php while($job = $jobs->fetch_assoc()): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($job['job_name']); ?></td>
-                        <td><?php echo $job['total_emails']; ?></td>
-                        <td><?php echo number_format($job['cost_in_credits'], 4); ?></td>
-                        <td><?php echo htmlspecialchars($job['status']); ?></td>
-                        <td><?php echo $job['created_at']; ?></td>
-                    </tr>
-                    <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
-    <script>
-        const emailsTextarea = document.getElementById('emails');
-        const costDiv = document.getElementById('cost-estimator');
-        const pricePerEmail = <?php echo $price_per_verification; ?>;
+<div class="container app-content">
+    <h1>Bulk Email Verification</h1>
+    <p>Clean your email lists to improve deliverability. Cost: <?php echo $cost_per_verification; ?> credit(s) per email.</p>
 
-        emailsTextarea.addEventListener('input', () => {
-            const text = emailsTextarea.value;
-            const emails = text.split(/[\s,]+/).filter(e => e.length > 2 && e.includes('@'));
-            const emailCount = emails.length;
-            const totalCost = (emailCount * pricePerEmail).toFixed(4);
-            costDiv.textContent = `Emails detected: ${emailCount} | Estimated Cost: ${totalCost} credits`;
-        });
-    </script>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
-</body>
-</html>
+    <?php if ($success): ?>
+        <div class="alert alert-success">
+            Your verification job has been successfully queued! You can track its progress on your dashboard.
+        </div>
+    <?php else: ?>
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger">
+                <ul>
+                    <?php foreach ($errors as $error): ?>
+                        <li><?php echo htmlspecialchars($error); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
+        <form action="/email-verification" method="POST" enctype="multipart/form-data" class="card">
+            <div class="form-group">
+                <label for="job_name">Job Name (Optional)</label>
+                <input type="text" id="job_name" name="job_name" placeholder="e.g., My Newsletter List">
+            </div>
+
+            <div class="form-group">
+                <label for="emails_list">Paste Emails</label>
+                <p class="form-hint">Paste one email address per line.</p>
+                <textarea name="emails_list" id="emails_list" rows="10" placeholder="test1@example.com&#10;test2@example.com"></textarea>
+            </div>
+
+            <div class="text-center" style="margin: 20px 0;">OR</div>
+
+            <div class="form-group">
+                <label for="email_csv">Upload a CSV File</label>
+                 <p class="form-hint">Upload a CSV file with one column containing email addresses.</p>
+                <input type="file" name="email_csv" id="email_csv" accept=".csv">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Verify List</button>
+        </form>
+    <?php endif; ?>
+</div>
+<?php
+include __DIR__ . '/../includes/footer_app.php';
+?>

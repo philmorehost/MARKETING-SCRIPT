@@ -1,73 +1,57 @@
 <?php
-// Security check: only admins can access
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: /login');
-    exit;
-}
+$page_title = "Admin Dashboard";
+require_once 'auth_admin.php';
+require_once 'includes/header_admin.php';
 
-// Note: $mysqli is available from the script that includes this, e.g. a front controller for admin
-if (!isset($mysqli)) {
-}
+// --- Data Fetching for Stats ---
+$stats = [
+    'total_revenue' => 0,
+    'new_users_24h' => 0,
+    'pending_pops' => 0,
+    'open_tickets' => 0,
+];
 
-
-// --- Fetch Dashboard Stats ---
-
-// Total Revenue (Monthly)
-$rev_result = $mysqli->query("SELECT SUM(amount_usd) as total FROM transactions WHERE type = 'purchase' AND status = 'completed' AND created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)");
-$total_revenue = $rev_result->fetch_assoc()['total'] ?? 0;
-
-// New Users (24h)
-$users_result = $mysqli->query("SELECT COUNT(id) as total FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)");
-$new_users_24h = $users_result->fetch_assoc()['total'] ?? 0;
-
-// Pending POP Verifications
-$pops_result = $mysqli->query("SELECT COUNT(id) as total FROM manual_payments WHERE status = 'pending'");
-$pending_pops = $pops_result->fetch_assoc()['total'] ?? 0;
-
-// Open Support Tickets
-$tickets_result = $mysqli->query("SELECT COUNT(id) as total FROM support_tickets WHERE status = 'open'");
-$open_tickets = $tickets_result->fetch_assoc()['total'] ?? 0;
+$stats['total_revenue'] = $mysqli->query("SELECT SUM(amount_usd) FROM transactions WHERE status = 'completed' AND type = 'purchase'")->fetch_row()[0] ?? 0;
+$stats['new_users_24h'] = $mysqli->query("SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL 1 DAY")->fetch_row()[0];
+$stats['pending_pops'] = $mysqli->query("SELECT COUNT(*) FROM manual_payments WHERE status = 'pending'")->fetch_row()[0];
+$stats['open_tickets'] = $mysqli->query("SELECT COUNT(*) FROM support_tickets WHERE status = 'open'")->fetch_row()[0];
 
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="/css/admin_style.css">
-</head>
-<body>
-    <?php include APP_ROOT . '/admin/includes/header.php'; ?>
 
-    <div class="admin-container">
-        <aside class="sidebar">
-            <?php include APP_ROOT . '/admin/includes/sidebar.php'; ?>
-        </aside>
+<div class="container-fluid">
+    <h1>Dashboard</h1>
 
-        <main class="main-content">
-            <h1>Dashboard</h1>
-
-            <div class="stats-grid">
-                <div class="card">
-                    <h3>Total Revenue (This Month)</h3>
-                    <p>$<?php echo number_format($total_revenue, 2); ?></p>
-                </div>
-                <div class="card">
-                    <h3>New Users (Last 24h)</h3>
-                    <p><?php echo $new_users_24h; ?></p>
-                </div>
-                <div class="card">
-                    <h3>Pending POP Verifications</h3>
-                    <p><?php echo $pending_pops; ?></p>
-                </div>
-                <div class="card">
-                    <h3>Open Support Tickets</h3>
-                    <p><?php echo $open_tickets; ?></p>
-                </div>
-            </div>
-        </main>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Revenue</h3>
+            <p>$<?php echo number_format($stats['total_revenue'], 2); ?></p>
+        </div>
+        <div class="stat-card">
+            <h3>New Users (24h)</h3>
+            <p><?php echo number_format($stats['new_users_24h']); ?></p>
+        </div>
+        <div class="stat-card">
+            <h3>Pending POPs</h3>
+            <p><?php echo number_format($stats['pending_pops']); ?></p>
+        </div>
+        <div class="stat-card">
+            <h3>Open Tickets</h3>
+            <p><?php echo number_format($stats['open_tickets']); ?></p>
+        </div>
     </div>
 
-    <?php include APP_ROOT . '/admin/includes/footer.php'; ?>
-</body>
-</html>
+    <div class="card mt-4">
+        <h2>Quick Links</h2>
+        <div class="quick-links">
+            <a href="users.php" class="btn btn-primary">Manage Users</a>
+            <a href="payments.php" class="btn btn-secondary">Verify Payments</a>
+            <a href="support.php" class="btn btn-info">View Tickets</a>
+            <a href="settings.php" class="btn btn-dark">Site Settings</a>
+        </div>
+    </div>
+
+</div>
+
+<?php
+require_once 'includes/footer_admin.php';
+?>

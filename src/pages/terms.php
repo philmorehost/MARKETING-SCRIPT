@@ -1,21 +1,19 @@
 <?php
-require_once '../config/db.php';
-require_once '../src/lib/functions.php';
-$terms_of_service = get_setting('terms_of_service', $mysqli, 'Terms of service not yet set.');
+// src/pages/terms.php
+require_once __DIR__ . '/../lib/functions.php';
+
+$page_title = "Terms of Service";
+
+include __DIR__ . '/../includes/header_public.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Terms of Service</title>
-    <link rel="stylesheet" href="css/public_style.css">
-</head>
-<body>
-    <?php include APP_ROOT . '/public/includes/site_header.php'; ?>
-    <main class="page-content">
-        <h1>Terms of Service</h1>
-        <div><?php echo nl2br(htmlspecialchars($terms_of_service)); ?></div>
-    </main>
-    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
-</body>
-</html>
+
+<div class="container page-content">
+    <h1><?php echo get_content('terms_of_service_title', 'Terms of Service'); ?></h1>
+    <div class="cms-content">
+        <?php echo get_content('terms_of_service_content', '<p>Your terms of service content goes here. You can edit this from the admin dashboard.</p>'); ?>
+    </div>
+</div>
+
+<?php
+include __DIR__ . '/../includes/footer_public.php';
+?>

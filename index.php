@@ -24,6 +24,14 @@ $request_uri = $_SERVER['REQUEST_URI'];
 $base_path = ''; // No base path since we're in the root
 $route = strtok($request_uri, '?'); // Remove query string
 $route = trim($route, '/');
+
+// --- Handle Landing Pages ---
+if (preg_match('/^p\/([a-zA-Z0-9]+)$/', $route, $matches)) {
+    $_GET['slug'] = $matches[1];
+    include APP_ROOT . '/src/pages/public-landing-page.php';
+    exit;
+}
+
 $route = $route ?: 'home'; // Default route
 
 // --- Define Routes ---

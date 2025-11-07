@@ -1,43 +1,43 @@
 <?php
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /login');
+// src/pages/notifications.php
+require_once __DIR__ . '/../lib/functions.php';
+require_once __DIR__ . '/../lib/auth.php';
+check_login();
+
+$page_title = "Notifications";
+
+// Mark all as read action
+if (isset($_GET['action']) && $_GET['action'] === 'mark_all_read') {
+    $mysqli->query("UPDATE notifications SET is_read = 1 WHERE user_id = {$user['id']}");
+    header('Location: /notifications');
     exit;
 }
-$team_id = $_SESSION['team_id'];
 
-// Fetch all notifications for the team
-$stmt = $mysqli->prepare("SELECT message, link, is_read, created_at FROM notifications WHERE team_id = ? ORDER BY created_at DESC");
-$stmt->bind_param('i', $team_id);
-$stmt->execute();
-$notifications = $stmt->get_result();
+// Fetch notifications
+$notifications_q = $mysqli->query("SELECT * FROM notifications WHERE user_id = {$user['id']} ORDER BY created_at DESC");
+$notifications = $notifications_q->fetch_all(MYSQLI_ASSOC);
+
+include __DIR__ . '/../includes/header_app.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head><title>All Notifications</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
-<body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
-    <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
-        <main class="main-content">
-            <h1>All Notifications</h1>
-            <div class="card">
-                <ul class="notification-list">
-                    <?php if ($notifications->num_rows > 0): ?>
-                        <?php while($notif = $notifications->fetch_assoc()): ?>
-                        <li class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>">
-                            <a href="<?php echo htmlspecialchars($notif['link'] ?? '#'); ?>">
-                                <p><?php echo htmlspecialchars($notif['message']); ?></p>
-                                <span class="timestamp"><?php echo $notif['created_at']; ?></span>
-                            </a>
-                        </li>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <li><p>You have no notifications.</p></li>
-                    <?php endif; ?>
-                </ul>
-            </div>
-        </main>
+<div class="container app-content">
+    <div class="page-header">
+        <h1>Notifications</h1>
+        <a href="/notifications?action=mark_all_read" class="btn btn-secondary">Mark All as Read</a>
     </div>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
-</body>
-</html>
+
+    <div class="card">
+        <div class="notification-list">
+            <?php if(empty($notifications)): ?>
+                <p>You have no new notifications.</p>
+            <?php else: foreach($notifications as $notif): ?>
+                <div class="notification-item <?php echo !$notif['is_read'] ? 'unread' : ''; ?>">
+                    <p><?php echo htmlspecialchars($notif['message']); ?></p>
+                    <small><?php echo date('M d, Y H:i', strtotime($notif['created_at'])); ?></small>
+                </div>
+            <?php endforeach; endif; ?>
+        </div>
+    </div>
+</div>
+<?php
+include __DIR__ . '/../includes/footer_app.php';
+?>

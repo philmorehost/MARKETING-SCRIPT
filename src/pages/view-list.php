@@ -1,131 +1,87 @@
 <?php
-require_once '../config/db.php';
+// src/pages/view-list.php
+require_once __DIR__ . '/../lib/functions.php';
+require_once __DIR__ . '/../lib/auth.php';
+check_login();
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /login');
-    exit;
-}
-$user_id = $_SESSION['user_id'];
-$team_id = $_SESSION['team_id'];
-$list_id = (int)($_GET['id'] ?? 0);
-if ($list_id === 0) {
-    header('Location: /contacts');
+$list_id = $_GET['id'] ?? null;
+if (!$list_id) {
+    header('Location: /contact-lists');
     exit;
 }
 
-$message = '';
+// Verify the user owns this list
+$team_id_condition = $user['team_id'] ? "team_id = " . $user['team_id'] : "user_id = " . $user['id'];
+$list_stmt = $mysqli->prepare("SELECT * FROM contact_lists WHERE id = ? AND ($team_id_condition)");
+$list_stmt->bind_param("i", $list_id);
+$list_stmt->execute();
+$list = $list_stmt->get_result()->fetch_assoc();
 
-// Verify the list belongs to the team
-$stmt = $mysqli->prepare("SELECT list_name FROM contact_lists WHERE id = ? AND team_id = ?");
-$stmt->bind_param('ii', $list_id, $team_id);
-$stmt->execute();
-$list = $stmt->get_result()->fetch_assoc();
 if (!$list) {
-    header('Location: /contacts');
+    // User does not own this list or list does not exist
+    header('Location: /contact-lists');
     exit;
 }
-$list_name = $list['list_name'];
 
-
-// Handle CSV Import
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
-    $file = $_FILES['csv_file']['tmp_name'];
-    $handle = fopen($file, "r");
-    $headers = fgetcsv($handle, 1000, ",");
-
-    // Simple mapping (assumes column order for now)
-    $email_col = array_search('email', array_map('strtolower', $headers));
-    $name_col = array_search('name', array_map('strtolower', $headers));
-
-    $contacts_added = 0;
-    while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-        $email = $data[$email_col] ?? null;
-        $name = $data[$name_col] ?? null;
-
-        if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            // Check if contact exists for this team, if not insert
-            $stmt = $mysqli->prepare("SELECT id FROM contacts WHERE email = ? AND team_id = ?");
-            $stmt->bind_param('si', $email, $team_id);
-            $stmt->execute();
-            $contact = $stmt->get_result()->fetch_assoc();
-
-            if ($contact) {
-                $contact_id = $contact['id'];
-            } else {
-                $stmt = $mysqli->prepare("INSERT INTO contacts (user_id, team_id, email, first_name) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param('iiss', $user_id, $team_id, $email, $name);
-                $stmt->execute();
-                $contact_id = $stmt->insert_id;
-            }
-
-            // Map contact to list
-            $stmt = $mysqli->prepare("INSERT IGNORE INTO contact_list_map (contact_id, list_id) VALUES (?, ?)");
-            $stmt->bind_param('ii', $contact_id, $list_id);
-            $stmt->execute();
-            $contacts_added++;
-        }
-    }
-    fclose($handle);
-    $message = "Import complete. {$contacts_added} contacts processed.";
-}
-
+$page_title = "View List: " . htmlspecialchars($list['list_name']);
 
 // Fetch contacts in this list
-$contacts_result = $mysqli->prepare("SELECT c.id, c.email, c.first_name, c.created_at FROM contacts c JOIN contact_list_map clm ON c.id = clm.contact_id WHERE clm.list_id = ? AND c.team_id = ?");
-$contacts_result->bind_param('ii', $list_id, $team_id);
-$contacts_result->execute();
-$contacts = $contacts_result->get_result();
+$contacts_query = $mysqli->prepare("
+    SELECT c.*
+    FROM contacts c
+    JOIN contact_list_map cm ON c.id = cm.contact_id
+    WHERE cm.list_id = ?
+    ORDER BY c.created_at DESC
+");
+$contacts_query->bind_param("i", $list_id);
+$contacts_query->execute();
+$contacts = $contacts_query->get_result()->fetch_all(MYSQLI_ASSOC);
+
+include __DIR__ . '/../includes/header_app.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>View List: <?php echo htmlspecialchars($list_name); ?></title>
-    <link rel="stylesheet" href="css/dashboard_style.css">
-</head>
-<body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
-    <div class="user-container">
-        <aside class="sidebar">
-            <?php include APP_ROOT . '/public/includes/sidebar.php'; ?>
-        </aside>
-        <main class="main-content">
-            <h1>Viewing List: "<?php echo htmlspecialchars($list_name); ?>"</h1>
-            <?php if ($message): ?><div class="message"><?php echo $message; ?></div><?php endif; ?>
+<div class="container app-content">
+    <a href="/contact-lists">&larr; Back to all lists</a>
+    <h1><?php echo htmlspecialchars($list['list_name']); ?></h1>
 
-            <div class="import-section">
-                <h2>Import Contacts from CSV</h2>
-                <form action="/view-list?id=<?php echo $list_id; ?>" method="post" enctype="multipart/form-data">
-                    <p>Upload a CSV file with at least an 'email' column.</p>
-                    <input type="file" name="csv_file" accept=".csv" required>
-                    <button type="submit">Import</button>
-                </form>
-            </div>
+    <div class="card">
+         <div class="page-header">
+            <h3>Contacts (<?php echo count($contacts); ?>)</h3>
+            <a href="/import-contacts?list_id=<?php echo $list_id; ?>" class="btn btn-primary">Import Contacts</a>
+        </div>
 
-            <hr>
-
-             <h2>Contacts in this List</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Email</th>
-                        <th>Name</th>
-                        <th>Added On</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($contact = $contacts->fetch_assoc()): ?>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Phone Number</th>
+                    <th>Added On</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($contacts)): ?>
+                    <tr><td colspan="5">This list has no contacts yet.</td></tr>
+                <?php else: ?>
+                    <?php foreach ($contacts as $contact): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($contact['email']); ?></td>
-                        <td><?php echo htmlspecialchars($contact['first_name']); ?></td>
-                        <td><?php echo $contact['created_at']; ?></td>
+                        <td><?php echo htmlspecialchars($contact['first_name'] . ' ' . $contact['last_name']); ?></td>
+                        <td><?php echo htmlspecialchars($contact['phone_number']); ?></td>
+                        <td><?php echo date('M d, Y', strtotime($contact['created_at'])); ?></td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-info">Edit</a>
+                            <a href="#" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
                     </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        </main>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
-</body>
-</html>
+</div>
+
+<?php
+include __DIR__ . '/../includes/footer_app.php';
+?>

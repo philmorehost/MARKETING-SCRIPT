@@ -1,110 +1,90 @@
 <?php
+// src/pages/qr-codes.php
+require_once __DIR__ . '/../lib/functions.php';
+require_once __DIR__ . '/../lib/auth.php';
+check_login();
+
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /login');
-    exit;
-}
-$user_id = $_SESSION['user_id'];
-$team_id = $_SESSION['team_id'];
-$team_owner_id = $_SESSION['team_owner_id'];
-$message = '';
+$page_title = "QR Code Generator";
+$cost_per_qr = get_setting('price_per_qr_code', 25);
 
-// Fetch cost from settings
-$price_per_qr = (float)get_setting('price_per_qr_code', $mysqli, 2);
-
-// Handle QR Code Generation
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_qr'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'generate') {
     $name = trim($_POST['name'] ?? 'QR Code');
     $url = trim($_POST['url'] ?? '');
 
-    if (filter_var($url, FILTER_VALIDATE_URL)) {
-        $stmt_balance = $mysqli->prepare("SELECT credit_balance FROM users WHERE id = ?");
-        $stmt_balance->bind_param('i', $team_owner_id);
-        $stmt_balance->execute();
-        $user_balance = (float)$stmt_balance->get_result()->fetch_assoc()['credit_balance'];
+    if (filter_var($url, FILTER_VALIDATE_URL) && $user['credit_balance'] >= $cost_per_qr) {
+        $mysqli->begin_transaction();
+        try {
+            // Generate QR Code
+            $qr_code = QrCode::create($url);
+            $writer = new PngWriter();
+            $result = $writer->write($qr_code);
 
-        if ($user_balance >= $price_per_qr) {
-            $mysqli->begin_transaction();
-            try {
-                $upload_dir = APP_ROOT . '/uploads/qr/';
-                if (!is_dir($upload_dir)) { mkdir($upload_dir, 0755, true); }
-                $filename = uniqid('qr_') . '.png';
-                $filepath = $upload_dir . $filename;
-                $web_path = '/uploads/qr/' . $filename;
+            $upload_dir = APP_ROOT . '/public/uploads/qrcodes/';
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+            $filename = uniqid('qr_') . '.png';
+            $file_path = $upload_dir . $filename;
+            $relative_path = '/uploads/qrcodes/' . $filename;
+            file_put_contents($file_path, $result->getString());
 
-                $qrCode = QrCode::create($url);
-                $writer = new PngWriter();
-                $result = $writer->write($qrCode);
-                $result->saveToFile($filepath);
+            // Deduct credits & save to DB
+            $mysqli->query("UPDATE users SET credit_balance = credit_balance - $cost_per_qr WHERE id = {$user['id']}");
+            $stmt = $mysqli->prepare("INSERT INTO qr_codes (user_id, team_id, name, url, image_path, cost_in_credits) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("iisssd", $user['id'], $user['team_id'], $name, $url, $relative_path, $cost_per_qr);
+            $stmt->execute();
+            $mysqli->query("INSERT INTO transactions (user_id, type, description, amount_credits, status) VALUES ({$user['id']}, 'spend_qr_code', 'QR Code: $name', $cost_per_qr, 'completed')");
 
-                $update_credits_stmt = $mysqli->prepare("UPDATE users SET credit_balance = credit_balance - ? WHERE id = ?");
-                $update_credits_stmt->bind_param('di', $price_per_qr, $team_owner_id);
-                $update_credits_stmt->execute();
-
-                $stmt_insert = $mysqli->prepare("INSERT INTO qr_codes (user_id, team_id, name, url, image_path, cost_in_credits) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt_insert->bind_param('iisssd', $user_id, $team_id, $name, $url, $web_path, $price_per_qr);
-                $stmt_insert->execute();
-
-                $mysqli->commit();
-                $message = "QR Code generated successfully!";
-            } catch (Exception $e) {
-                $mysqli->rollback();
-                $message = "An error occurred during generation: " . $e->getMessage();
-            }
-        } else {
-            $message = "Insufficient credits. You need {$price_per_qr} credits.";
+            $mysqli->commit();
+            header('Location: /qr-codes');
+            exit;
+        } catch(Exception $e) {
+            $mysqli->rollback();
         }
-    } else {
-        $message = "Please enter a valid URL.";
     }
 }
 
+
 // Fetch existing QR codes
-$codes_result = $mysqli->prepare("SELECT name, url, image_path, created_at FROM qr_codes WHERE team_id = ? ORDER BY id DESC");
-$codes_result->bind_param('i', $team_id);
-$codes_result->execute();
-$codes = $codes_result->get_result();
+$team_id_condition = $user['team_id'] ? "team_id = " . $user['team_id'] : "user_id = " . $user['id'];
+$qr_codes = $mysqli->query("SELECT * FROM qr_codes WHERE $team_id_condition ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
+
+
+include __DIR__ . '/../includes/header_app.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head><title>QR Code Generator</title><link rel="stylesheet" href="/css/dashboard_style.css"></head>
-<body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
-    <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
-        <main class="main-content">
-            <h1>QR Code Generator</h1>
-            <?php if ($message): ?><div class="message"><?php echo htmlspecialchars($message); ?></div><?php endif; ?>
-            <div class="card">
-                <h2>Create New QR Code</h2>
-                <form action="/qr-codes" method="post">
-                    <input type="hidden" name="generate_qr" value="1">
-                    <p>Cost per QR Code: <strong><?php echo $price_per_qr; ?> credits</strong></p>
-                    <div class="form-group"><label for="name">Name</label><input type="text" id="name" name="name" placeholder="e.g., Business Card Link" required></div>
-                    <div class="form-group"><label for="url">URL</label><input type="url" id="url" name="url" placeholder="https://example.com" required></div>
-                    <button type="submit">Generate QR Code</button>
-                </form>
+<div class="container app-content">
+    <h1>QR Code Generator</h1>
+    <div class="card">
+        <h3>Create New QR Code</h3>
+        <p>Cost: <?php echo $cost_per_qr; ?> credits</p>
+        <form method="POST">
+            <input type="hidden" name="action" value="generate">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="name" class="form-control" required>
             </div>
-            <hr>
-            <h2>Your QR Codes</h2>
-            <div class="qr-grid">
-                <?php if ($codes->num_rows > 0): ?>
-                    <?php while($code = $codes->fetch_assoc()): ?>
-                    <div class="qr-item card">
-                        <img src="/public<?php echo htmlspecialchars($code['image_path']); ?>" alt="QR Code">
-                        <p><strong><?php echo htmlspecialchars($code['name']); ?></strong></p>
-                        <p><small><?php echo htmlspecialchars($code['url']); ?></small></p>
-                        <a href="/public<?php echo htmlspecialchars($code['image_path']); ?>" class="button-small" download>Download</a>
-                    </div>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <p>You haven't generated any QR codes yet.</p>
-                <?php endif; ?>
+            <div class="form-group">
+                <label>URL</label>
+                <input type="url" name="url" class="form-control" required>
             </div>
-        </main>
+            <button type="submit" class="btn btn-primary">Generate QR Code</button>
+        </form>
     </div>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
-</body>
-</html>
+
+    <div class="card">
+        <h3>My QR Codes</h3>
+        <div class="qr-code-grid">
+            <?php foreach($qr_codes as $code): ?>
+            <div class="qr-code-item">
+                <img src="/public<?php echo $code['image_path']; ?>">
+                <p><?php echo htmlspecialchars($code['name']); ?></p>
+                <a href="/public<?php echo $code['image_path']; ?>" download>Download</a>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<?php
+include __DIR__ . '/../includes/footer_app.php';
+?>

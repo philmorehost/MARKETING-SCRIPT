@@ -1,94 +1,103 @@
 <?php
-// Note: session is started by index.php
-// Note: $mysqli connection is provided by index.php
-
-$error_message = '';
+// src/pages/login.php
+$page_title = "Login";
+$errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'] ?? '';
+    $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    if (empty($email) || empty($password)) {
-        $error_message = "Email and password are required.";
-    } else {
-        // No need to check $mysqli->connect_error, front controller handles it.
-        $stmt = $mysqli->prepare("SELECT id, name, password, role, status, team_id, team_role FROM users WHERE email = ? LIMIT 1");
-        $stmt->bind_param('s', $email);
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Invalid email format.";
+    }
+    if (empty($password)) {
+        $errors[] = "Password is required.";
+    }
+
+    if (empty($errors)) {
+        $stmt = $mysqli->prepare("SELECT id, password, role FROM users WHERE email = ? AND status = 'active'");
+        $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
 
-        if ($result->num_rows === 1) {
-            $user = $result->fetch_assoc();
-            if (password_verify($password, $user['password'])) {
-                if ($user['status'] === 'active' || $user['status'] === 'pending') {
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['user_name'] = $user['name'];
-                    $_SESSION['user_role'] = $user['role'];
-                    $_SESSION['team_id'] = $user['team_id'];
-                    $_SESSION['team_role'] = $user['team_role'];
+        if ($user && password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_role'] = $user['role'];
 
-                    if ($user['team_id']) {
-                        $team_stmt = $mysqli->prepare("SELECT owner_user_id FROM teams WHERE id = ?");
-                        $team_stmt->bind_param('i', $user['team_id']);
-                        $team_stmt->execute();
-                        $team_result = $team_stmt->get_result();
-                        if ($team_result->num_rows > 0) {
-                           $team = $team_result->fetch_assoc();
-                           $_SESSION['team_owner_id'] = $team['owner_user_id'];
-                        } else {
-                           $_SESSION['team_owner_id'] = $user['id'];
-                        }
-                    } else {
-                         $_SESSION['team_owner_id'] = $user['id'];
-                    }
-
-                    if ($user['role'] === 'admin') {
-                        header('Location: /admin/dashboard.php');
-                    } else {
-                        header('Location: /dashboard');
-                    }
-                    exit;
-                } elseif ($user['status'] === 'suspended') {
-                    $error_message = "Your account has been suspended.";
-                }
+            // Redirect based on role
+            if ($user['role'] === 'admin') {
+                header("Location: /admin/dashboard.php");
             } else {
-                $error_message = "Invalid email or password.";
+                header("Location: /dashboard");
             }
+            exit;
         } else {
-            $error_message = "Invalid email or password.";
+            $errors[] = "Invalid email or password.";
         }
-        $stmt->close();
     }
 }
+
+
+include __DIR__ . '/../includes/header_public.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-    <link rel="stylesheet" href="/css/public_style.css">
-    <link rel="stylesheet" href="/css/auth_style.css">
-</head>
-<body>
-    <div class="auth-container">
+
+<div class="container page-content">
+    <div class="auth-form">
         <h2>Login to Your Account</h2>
-        <?php if ($error_message): ?>
-            <p class="error"><?php echo $error_message; ?></p>
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger">
+                <?php foreach ($errors as $error): ?>
+                    <p><?php echo $error; ?></p>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
-        <form action="/login" method="post">
+        <form action="/login" method="POST">
             <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+                <label for="email">Email Address</label>
+                <input type="email" name="email" id="email" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" name="password" id="password" required>
             </div>
-            <button type="submit" class="button">Login</button>
+            <div class="form-group-extra">
+                <a href="/forgot-password">Forgot Password?</a>
+            </div>
+            <button type="submit" class="cta-button">Login</button>
         </form>
-        <div class="footer-links">
-            <a href="/forgot-password">Forgot Password?</a> | <a href="/register">Don't have an account?</a>
+        <p class="auth-switch">Don't have an account? <a href="/register">Sign up here</a>.</p>
+
+        <div class="social-login">
+            <p>Or</p>
+            <a href="/google-login.php" class="btn-google">
+                <i class="fab fa-google"></i> Sign in with Google
+            </a>
         </div>
     </div>
-</body>
-</html>
+</div>
+
+<?php
+include __DIR__ . '/../includes/footer_public.php';
+?>
+<style>
+.auth-form {
+    max-width: 400px;
+    margin: 40px auto;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+.auth-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.form-group-extra {
+    text-align: right;
+    margin-bottom: 15px;
+}
+.auth-switch {
+    text-align: center;
+    margin-top: 20px;
+}
+</style>

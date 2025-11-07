@@ -1,71 +1,56 @@
 <?php
-require_once '../config/db.php';
-$user_id = $_SESSION['user_id'] ?? 0;
-$ticket_id = (int)($_GET['id'] ?? 0);
-if ($user_id === 0 || $ticket_id === 0) {
-    header('Location: /login');
-    exit;
-}
+// src/pages/view-ticket.php
+require_once __DIR__ . '/../lib/functions.php';
+require_once __DIR__ . '/../lib/auth.php';
+check_login();
 
+$ticket_id = $_GET['id'] ?? null;
+// User ownership check...
 
-// Verify ticket ownership
-$stmt = $mysqli->prepare("SELECT subject, status FROM support_tickets WHERE id = ? AND user_id = ?");
-$stmt->bind_param('ii', $ticket_id, $user_id);
-$stmt->execute();
-$ticket = $stmt->get_result()->fetch_assoc();
-if (!$ticket) {
-    header('Location: /support');
-    exit;
-}
-
-// Handle new reply
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['post_reply'])) {
+// Handle replies
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'reply') {
     $message = trim($_POST['message'] ?? '');
-    if (!empty($message)) {
+    if(!empty($message)) {
         $stmt = $mysqli->prepare("INSERT INTO support_ticket_replies (ticket_id, user_id, message) VALUES (?, ?, ?)");
-        $stmt->bind_param('iis', $ticket_id, $user_id, $message);
+        $stmt->bind_param("iis", $ticket_id, $user['id'], $message);
         $stmt->execute();
-        header("Location: view-ticket.php?id=$ticket_id"); // Refresh to show new reply
+        header("Location: /view-ticket?id=$ticket_id");
         exit;
     }
 }
 
-// Fetch all replies for this ticket
-$replies_result = $mysqli->prepare("SELECT r.message, r.created_at, u.name as author FROM support_ticket_replies r LEFT JOIN users u ON r.user_id = u.id WHERE r.ticket_id = ? ORDER BY r.created_at ASC");
-$replies_result->bind_param('i', $ticket_id);
-$replies_result->execute();
-$replies = $replies_result->get_result();
+// Fetch ticket and replies...
+$ticket_q = $mysqli->query("SELECT * FROM support_tickets WHERE id = $ticket_id");
+$ticket = $ticket_q->fetch_assoc();
+$replies_q = $mysqli->query("SELECT r.*, u.name as author FROM support_ticket_replies r LEFT JOIN users u ON r.user_id = u.id WHERE r.ticket_id = $ticket_id ORDER BY r.created_at ASC");
+$replies = $replies_q->fetch_all(MYSQLI_ASSOC);
+
+$page_title = "View Ticket";
+include __DIR__ . '/../includes/header_app.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head><title>Viewing Ticket</title><link rel="stylesheet" href="css/dashboard_style.css"></head>
-<body>
-    <?php include APP_ROOT . '/public/includes/header.php'; ?>
-    <div class="user-container">
-        <aside class="sidebar"><?php include APP_ROOT . '/public/includes/sidebar.php'; ?></aside>
-        <main class="main-content">
-            <h1><?php echo htmlspecialchars($ticket['subject']); ?></h1>
-            <p>Status: <?php echo htmlspecialchars($ticket['status']); ?></p>
+<div class="container app-content">
+    <a href="/support">&larr; Back to all tickets</a>
+    <h1><?php echo htmlspecialchars($ticket['subject']); ?></h1>
 
-            <div class="ticket-replies">
-                <?php while($reply = $replies->fetch_assoc()): ?>
-                <div class="reply">
-                    <p><strong><?php echo htmlspecialchars($reply['author'] ?? 'Guest'); ?></strong> said:</p>
-                    <p><?php echo nl2br(htmlspecialchars($reply['message'])); ?></p>
-                    <small><?php echo $reply['created_at']; ?></small>
-                </div>
-                <hr>
-                <?php endwhile; ?>
-            </div>
-
-            <h2>Post a Reply</h2>
-            <form action="/view-ticket?id=<?php echo $ticket_id; ?>" method="post">
-                <input type="hidden" name="post_reply" value="1">
-                <textarea name="message" rows="5" required></textarea><br>
-                <button type="submit">Post Reply</button>
-            </form>
-        </main>
+    <div class="ticket-replies">
+        <?php foreach($replies as $reply): ?>
+        <div class="reply-card">
+            <strong><?php echo htmlspecialchars($reply['author'] ?? 'Admin'); ?></strong>
+            <p><?php echo nl2br(htmlspecialchars($reply['message'])); ?></p>
+            <small><?php echo $reply['created_at']; ?></small>
+        </div>
+        <?php endforeach; ?>
     </div>
-    <?php include APP_ROOT . '/public/includes/footer.php'; ?>
-</body>
-</html>
+
+    <div class="card">
+        <h3>Post a Reply</h3>
+        <form method="POST">
+            <input type="hidden" name="action" value="reply">
+            <textarea name="message" class="form-control" rows="5"></textarea>
+            <button type="submit" class="btn btn-primary">Submit Reply</button>
+        </form>
+    </div>
+</div>
+<?php
+include __DIR__ . '/../includes/footer_app.php';
+?>

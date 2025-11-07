@@ -1,67 +1,94 @@
 <?php
-$message = '';
+// src/pages/contact.php
+require_once __DIR__ . '/../lib/functions.php';
+
+$page_title = "Contact Us";
+$errors = [];
 $success = false;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $subject = trim($_POST['subject'] ?? '');
-    $body = trim($_POST['message'] ?? '');
+    $message = trim($_POST['message'] ?? '');
 
-    if (empty($name) || empty($email) || empty($subject) || empty($body) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = "Please fill out all fields with valid information.";
-    } else {
-        $stmt = $mysqli->prepare("INSERT INTO support_tickets (guest_name, guest_email, subject) VALUES (?, ?, ?)");
-        $stmt->bind_param('sss', $name, $email, $subject);
+    if (empty($name)) $errors[] = "Name is required.";
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "A valid email is required.";
+    if (empty($subject)) $errors[] = "Subject is required.";
+    if (empty($message)) $errors[] = "Message is required.";
+
+    if (empty($errors)) {
+        // Create a support ticket from a "guest"
+        $stmt = $mysqli->prepare(
+            "INSERT INTO support_tickets (user_id, team_id, guest_name, guest_email, subject, status, created_at)
+             VALUES (NULL, NULL, ?, ?, ?, 'open', NOW())"
+        );
+        $stmt->bind_param("sss", $name, $email, $subject);
         if ($stmt->execute()) {
             $ticket_id = $stmt->insert_id;
-            $reply_stmt = $mysqli->prepare("INSERT INTO support_ticket_replies (ticket_id, message) VALUES (?, ?)");
-            $reply_stmt->bind_param('is', $ticket_id, $body);
+
+            // Add the first reply
+            $reply_stmt = $mysqli->prepare(
+                "INSERT INTO support_ticket_replies (ticket_id, user_id, message, created_at)
+                 VALUES (?, NULL, ?, NOW())"
+            );
+            $reply_stmt->bind_param("is", $ticket_id, $message);
             $reply_stmt->execute();
-            $message = "Thank you for contacting us! Your ticket has been created. We will get back to you shortly.";
+
             $success = true;
+
+            // TODO: Send an email notification to the admin
+
         } else {
-            $message = "There was an error submitting your message. Please try again.";
+            $errors[] = "Sorry, there was an error submitting your message. Please try again later.";
         }
     }
 }
+
+include __DIR__ . '/../includes/header_public.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Contact Us - <?php echo htmlspecialchars(get_setting('site_name', $mysqli)); ?></title>
-    <link rel="stylesheet" href="/css/public_style.css">
-</head>
-<body>
-    <?php include APP_ROOT . '/public/includes/site_header.php'; ?>
 
-    <header class="page-header">
-        <div class="container">
-            <h1>Contact Us</h1>
-            <p>Have a question or need support? Fill out the form below.</p>
+<div class="container page-content">
+    <h1>Contact Us</h1>
+    <p>Have a question or need help? Fill out the form below, and we'll get back to you as soon as possible.</p>
+
+    <?php if ($success): ?>
+        <div class="alert alert-success">
+            <strong>Thank you!</strong> Your message has been received. Our team will get back to you shortly. Your ticket has been created.
         </div>
-    </header>
-
-    <section class="contact-form">
-        <div class="container-narrow">
-            <div class="card">
-                <?php if ($message): ?>
-                    <div class="message <?php echo $success ? 'success' : 'error'; ?>"><?php echo $message; ?></div>
-                <?php endif; ?>
-
-                <?php if (!$success): ?>
-                <form action="/contact" method="post">
-                    <div class="form-group"><label for="name">Name</label><input type="text" id="name" name="name" required></div>
-                    <div class="form-group"><label for="email">Email</label><input type="email" id="email" name="email" required></div>
-                    <div class="form-group"><label for="subject">Subject</label><input type="text" id="subject" name="subject" required></div>
-                    <div class="form-group"><label for="message">Message</label><textarea id="message" name="message" rows="6" required></textarea></div>
-                    <button type="submit">Send Message</button>
-                </form>
-                <?php endif; ?>
+    <?php else: ?>
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger">
+                <ul>
+                    <?php foreach ($errors as $error): ?>
+                        <li><?php echo htmlspecialchars($error); ?></li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
-        </div>
-    </section>
+        <?php endif; ?>
 
-    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
-</body>
-</html>
+        <form action="/contact" method="POST" class="contact-form">
+            <div class="form-group">
+                <label for="name">Your Name</label>
+                <input type="text" id="name" name="name" required value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>">
+            </div>
+            <div class="form-group">
+                <label for="email">Your Email</label>
+                <input type="email" id="email" name="email" required value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" required value="<?php echo htmlspecialchars($_POST['subject'] ?? ''); ?>">
+            </div>
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" rows="6" required><?php echo htmlspecialchars($_POST['message'] ?? ''); ?></textarea>
+            </div>
+            <button type="submit" class="cta-button">Send Message</button>
+        </form>
+    <?php endif; ?>
+</div>
+
+<?php
+include __DIR__ . '/../includes/footer_public.php';
+?>

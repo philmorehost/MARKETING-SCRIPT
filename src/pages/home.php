@@ -1,82 +1,85 @@
 <?php
-// --- src/pages/home.php ---
+// src/pages/home.php
+require_once __DIR__ . '/../lib/functions.php';
 
-// Fetch dynamic content for the homepage
-$hero_title = get_content('hero_title', $mysqli, 'Powerful Email Marketing Made Simple');
-$hero_subtitle = get_content('hero_subtitle', $mysqli, 'Engage your audience, grow your business.');
+$page_title = "Home";
 
-$features_result = $mysqli->query("SELECT icon, title, description FROM cms_features ORDER BY display_order ASC LIMIT 4");
-$testimonials_result = $mysqli->query("SELECT author_name, author_title, quote, star_rating FROM testimonials ORDER BY display_order ASC LIMIT 3");
-$packages_result = $mysqli->query("SELECT name, description, price, credits FROM credit_packages WHERE is_popular = 1 ORDER BY price ASC LIMIT 1");
-$popular_package = $packages_result->fetch_assoc();
+include __DIR__ . '/../includes/header_public.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars(get_setting('site_name', $mysqli, 'Marketing Platform')); ?></title>
-    <link rel="stylesheet" href="/css/public_style.css">
-</head>
-<body>
-    <?php include APP_ROOT . '/public/includes/site_header.php'; ?>
 
-    <!-- Hero Section -->
-    <header class="hero">
-        <div class="container">
-            <h1><?php echo htmlspecialchars($hero_title); ?></h1>
-            <p><?php echo htmlspecialchars($hero_subtitle); ?></p>
-            <a href="/register" class="button-primary">Get Started for Free</a>
+<div class="hero-section">
+    <h1><?php echo get_content('hero_title', 'Your All-in-One Marketing Platform'); ?></h1>
+    <p><?php echo get_content('hero_subtitle', 'Reach your customers wherever they are.'); ?></p>
+    <a href="/register.php" class="cta-button"><?php echo get_content('hero_cta', 'Get Started for Free'); ?></a>
+</div>
+
+<div class="container services-summary">
+    <h2>Our Services</h2>
+    <div class="services-grid">
+        <div class="service-item">
+            <i class="fas fa-envelope"></i>
+            <h3>Bulk Email Marketing</h3>
+            <p>Send beautiful and effective email campaigns to your audience.</p>
         </div>
-    </header>
-
-    <!-- Services Summary -->
-    <section class="services-summary">
-        <div class="container">
-            <h2>Our Services</h2>
-            <div class="grid">
-                <?php while ($feature = $features_result->fetch_assoc()): ?>
-                <div class="card">
-                    <i class="fa <?php echo htmlspecialchars($feature['icon']); ?>"></i>
-                    <h3><?php echo htmlspecialchars($feature['title']); ?></h3>
-                    <p><?php echo htmlspecialchars($feature['description']); ?></p>
-                </div>
-                <?php endwhile; ?>
-            </div>
+        <div class="service-item">
+            <i class="fas fa-sms"></i>
+            <h3>Bulk SMS Marketing</h3>
+            <p>Engage your customers directly with personalized text messages.</p>
         </div>
-    </section>
-
-    <!-- Testimonials -->
-    <section class="testimonials">
-        <div class="container">
-            <h2>What Our Users Say</h2>
-            <div class="grid">
-                <?php while ($testimonial = $testimonials_result->fetch_assoc()): ?>
-                <div class="card">
-                    <p class="quote">"<?php echo htmlspecialchars($testimonial['quote']); ?>"</p>
-                    <p class="author">- <?php echo htmlspecialchars($testimonial['author_name']); ?>, <?php echo htmlspecialchars($testimonial['author_title']); ?></p>
-                </div>
-                <?php endwhile; ?>
-            </div>
+        <div class="service-item">
+            <i class="fab fa-whatsapp"></i>
+            <h3>Bulk WhatsApp Marketing</h3>
+            <p>Connect with your users on the world's most popular messaging app.</p>
         </div>
-    </section>
-
-    <!-- Pricing Preview -->
-    <?php if ($popular_package): ?>
-    <section class="pricing-preview">
-        <div class="container">
-            <h2>Simple, Pay-As-You-Go Pricing</h2>
-            <div class="card popular">
-                <h3>Most Popular Plan</h3>
-                <h4><?php echo htmlspecialchars($popular_package['name']); ?></h4>
-                <p class="price">$<?php echo number_format($popular_package['price'], 2); ?></p>
-                <p><?php echo number_format($popular_package['credits']); ?> Credits</p>
-                <a href="/pricing" class="button-secondary">View All Plans</a>
-            </div>
+        <div class="service-item">
+            <i class="fas fa-check-circle"></i>
+            <h3>Email Verification</h3>
+            <p>Clean your email lists to improve deliverability and campaign ROI.</p>
         </div>
-    </section>
-    <?php endif; ?>
+    </div>
+</div>
 
-    <?php include APP_ROOT . '/public/includes/site_footer.php'; ?>
-</body>
-</html>
+<div class="container features-highlights">
+    <h2>Platform Highlights</h2>
+    <div class="features-grid">
+        <div class="feature-item">
+            <h3><i class="fas fa-robot"></i> AI Content Helper</h3>
+            <p>Generate engaging marketing copy for your campaigns in seconds.</p>
+        </div>
+        <div class="feature-item">
+            <h3><i class="fas fa-file-alt"></i> Landing Page Builder</h3>
+            <p>Create beautiful, high-converting landing pages with no code.</p>
+        </div>
+        <div class="feature-item">
+            <h3><i class="fas fa-cogs"></i> Marketing Automations</h3>
+            <p>Set up autoresponders and welcome series to nurture your leads.</p>
+        </div>
+    </div>
+</div>
+
+<div class="container testimonials-section">
+    <h2>What Our Customers Say</h2>
+    <div class="testimonial-slider">
+        <?php
+        // This part will be dynamic, fetched from the database later
+        ?>
+        <div class="testimonial">
+            <p>"This platform has transformed our marketing efforts. The credit system is fair, and the tools are powerful and easy to use."</p>
+            <span>- Jane Doe, CEO of ExampleCorp</span>
+        </div>
+        <div class="testimonial">
+            <p>"The email verification service is a lifesaver! Our bounce rates have dropped significantly since we started using it."</p>
+            <span>- John Smith, Marketing Manager</span>
+        </div>
+    </div>
+</div>
+
+<div class="container pricing-preview">
+    <h2>Simple, Pay-as-you-go Pricing</h2>
+    <p>Only pay for what you use. Top up your credits and use them across any of our services.</p>
+    <a href="/pricing.php" class="cta-button">View Pricing</a>
+</div>
+
+<?php
+include __DIR__ . '/../includes/footer_public.php';
+?>
